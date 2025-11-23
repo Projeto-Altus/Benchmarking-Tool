@@ -1,45 +1,42 @@
-from flask import Blueprint, jsonify, request
-from ..dtos.scraping_dto import ScrapeRequest
-from pydantic import ValidationError        
-from ..services.scraper_service import scraper_service
+from flask import Blueprint, request, jsonify
+from pydantic import ValidationError
 
-scrape_bp = Blueprint("scrape", __name__)
+from dtos.scraping_dto import ScrapeRequest
+from services.scraper_service import ScraperService
+from services.ai_service import AIService
+from services.export_service import ExportService
 
-@scrape_bp.route("/", methods=["POST"])
-def scrape():
-    json_data = request.get_json()
-    
-    if json_data is None:
-        return jsonify({"message": "Corpo da requisição inválido (JSON esperado)."}), 400
+scrape_bp = Blueprint('scrape', __name__)
 
+@scrape_bp.route('/compare', methods=['POST'])
+def compare_products():
     try:
-        validated_data = ScrapeRequest.model_validate(json_data)
-        
+        data = request.get_json()
+        req = ScrapeRequest(**data)
+
+        if not req.urls or not req.attributes:
+            return jsonify({"error": "URLs e Atributos são obrigatórios"}), 400
+
+        scraped_results = {}
+        for url in req.urls:
+            content = ScraperService.extract_content(url)
+            scraped_results[url] = content
+
+        prompt = AIService.build_prompt(scraped_results, req.attributes)
+        ai_data = AIService.get_comparison_data(prompt, req.api_key)
+
+        filename = ExportService.generate_excel(ai_data, req.attributes)
+
+        download_url = f"/api/export/download/{filename}"
+
+        return jsonify({
+            "status": "success",
+            "message": "Comparativo gerado.",
+            "data": ai_data,
+            "download_link": download_url
+        })
+
     except ValidationError as e:
-        return jsonify({
-            "message": "Falha na validação dos dados de entrada.",
-            "details": e.errors()
-        }), 400
-        
-    try:
-        links = [str(url) for url in validated_data.urls]
-        attributes = validated_data.attributes
-        
-        service_response = scraper_service.scrape(
-            links=links, 
-            attributes=attributes
-        )
-        
-        return jsonify(service_response), 200
-
-    except ValueError as ve:
-        return jsonify({
-            "message": "Dados inválidos fornecidos.", 
-            "error_detail": str(ve)
-        }), 400
-
+        return jsonify({"error": e.errors()}), 422
     except Exception as e:
-        return jsonify({
-            "message": "Ocorreu um erro interno durante o processamento.", 
-            "error_detail": str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
