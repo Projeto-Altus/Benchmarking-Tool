@@ -1,3 +1,20 @@
+import os
+import pandas as pd
+from datetime import datetime
+from core.config import Config
+
 class ExportService:
-    def export_to_xlsx(self, data):
-        pass
+    @staticmethod
+    def generate_excel(data: list, attributes: list) -> str:
+        df = pd.json_normalize(data)
+        
+        # Garante colunas vazias se a IA falhar em achar algum atributo
+        for attr in attributes:
+            if attr not in df.columns:
+                df[attr] = "N/A"
+        
+        filename = f"comparativo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        filepath = os.path.join(Config.DOWNLOAD_FOLDER, filename)
+        
+        df.to_excel(filepath, index=False)
+        return filename

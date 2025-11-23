@@ -8,7 +8,7 @@ from services.export_service import ExportService
 
 scrape_bp = Blueprint('scrape', __name__)
 
-@scrape_bp.route('/compare', methods=['POST'])
+@scrape_bp.route('/', methods=['POST'])
 def compare_products():
     try:
         data = request.get_json()
