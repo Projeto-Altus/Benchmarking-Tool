@@ -1,9 +1,33 @@
 import json
-import os
 import google.generativeai as genai
+from openai import OpenAI
 from typing import List, Dict
+from core.exceptions import InvalidAPIKeyError
 
 class AIService:
+    @staticmethod
+    def verify_api_key(api_key: str, provider: str):
+        if not api_key:
+            raise InvalidAPIKeyError("A chave de API não foi fornecida.")
+
+        try:
+            if provider == "openai":
+                client = OpenAI(api_key=api_key)
+                client.models.list()
+            
+            elif provider == "google":
+                genai.configure(api_key=api_key)
+                try:
+                    next(iter(genai.list_models()))
+                except StopIteration:
+                    pass
+            
+            else:
+                raise InvalidAPIKeyError(f"Provedor '{provider}' não suportado.")
+                
+        except Exception:
+            raise InvalidAPIKeyError(f"A chave de API fornecida é inválida para o provedor {provider}.")
+
     @staticmethod
     def build_prompt(scraped_data: Dict[str, str], attributes: List[str]) -> str:
         prompt = (
@@ -12,47 +36,72 @@ class AIService:
             f"ATRIBUTOS PARA EXTRAIR: {', '.join(attributes)}\n\n"
             "--- REGRAS DE RESPOSTA ---\n"
             "1. Retorne APENAS um JSON válido.\n"
-            "2. O formato deve ser uma lista de objetos: [{'url_origem': '...', 'atributo': 'valor'}]\n"
-            "3. Se a informação não existir, preencha com 'N/A'.\n"
-            "4. Não utilize blocos de markdown (como ```json), retorne apenas o texto do JSON.\n\n"
+            "2. O formato deve ser uma LISTA de objetos.\n"
+            "3. Cada objeto deve representar UMA URL e conter TODOS os atributos solicitados agrupados.\n"
+            "4. Estrutura obrigatória: [{'url_origem': '...', 'atributo1': 'valor', 'atributo2': 'valor'}]\n"
+            "5. Se a informação não existir, preencha com 'N/A'.\n"
+            "6. Não utilize blocos de markdown, retorne apenas o texto do JSON puro.\n\n"
             "--- DADOS DOS SITES ---\n"
         )
 
         for i, (url, content) in enumerate(scraped_data.items()):
-            prompt += f"\n>>> SITE {i+1} (URL: {url}):\n{content[:12000]}\n"
+            prompt += f"\n>>> SITE {i+1} (URL: {url}):\n{content[:50000]}\n"
 
         return prompt
 
     @staticmethod
-    def get_comparison_data(prompt: str, api_key: str = None) -> List[Dict]:
-        print("--- [AI Service] Conectando ao Google Gemini... ---")
-        
-        final_key = api_key
-        
-        if not final_key:
-            print("ERRO: Nenhuma API Key fornecida.")
-            return [{"error": "API Key do Gemini não configurada. Envie no JSON ou configure a variável de ambiente GEMINI_API_KEY."}]
-
+    def get_comparison_data(prompt: str, api_key: str, provider: str = "openai") -> List[Dict]:
         try:
-            genai.configure(api_key=final_key)
-            
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            
-            response = model.generate_content(prompt)
-            raw_text = response.text
+            raw_text = ""
+            if provider == "openai":
+                client = OpenAI(api_key=api_key)
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful data extraction assistant that outputs only valid JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.2,
+                    response_format={"type": "json_object"}
+                )
+                raw_text = response.choices[0].message.content
 
+            elif provider == "google":
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                response = model.generate_content(prompt)
+                raw_text = response.text
+            
             clean_text = raw_text.replace("```json", "").replace("```", "").strip()
             
+            if not (clean_text.startswith("{") or clean_text.startswith("[")):
+                import re
+                match = re.search(r'(\{.*\}|\[.*\])', clean_text, re.DOTALL)
+                if match:
+                    clean_text = match.group(0)
+
             data = json.loads(clean_text)
             
+            raw_list = []
             if isinstance(data, dict):
-                return [data]
-            return data
+                if "result" in data: raw_list = data["result"]
+                elif "data" in data: raw_list = data["data"]
+                else: raw_list = [data]
+            elif isinstance(data, list):
+                raw_list = data
 
-        except json.JSONDecodeError:
-            print("Erro: A resposta da IA não foi um JSON válido.")
-            return [{"error": "Erro de formatação da IA", "conteudo_recebido": raw_text[:200]}]
-        
+            merged_data = {}
+            for item in raw_list:
+                url = item.get("url_origem")
+                if not url:
+                    continue
+                
+                if url not in merged_data:
+                    merged_data[url] = item
+                else:
+                    merged_data[url].update(item)
+
+            return list(merged_data.values())
+
         except Exception as e:
-            print(f"Erro na API do Gemini: {e}")
             return [{"error": f"Erro na comunicação com a IA: {str(e)}"}]

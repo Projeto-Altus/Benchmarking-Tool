@@ -5,3 +5,4 @@ class ScrapeRequest(BaseModel):
     urls: List[str]
     attributes: List[str]
     api_key: Optional[str] = None
+    provider: Optional[str] = "openai"

@@ -5,3 +5,6 @@ openpyxl
 playwright
 pydantic
 google-generativeai
+openai
+openpyxl
+validators
