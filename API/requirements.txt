@@ -8,3 +8,4 @@ google-generativeai
 openai
 openpyxl
 validators
+playwright-stealth

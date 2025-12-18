@@ -1,7 +1,6 @@
-import concurrent.futures
+import asyncio
 from flask import Blueprint, request, jsonify
 from pydantic import ValidationError
-
 from dtos.scraping_dto import ScrapeRequest
 from services.scraper_service import ScraperService
 from services.ai_service import AIService
@@ -15,7 +14,6 @@ def compare_products():
     try:
         data = request.get_json()
         req = ScrapeRequest(**data)
-
         provider = req.provider.lower() if req.provider else "openai"
 
         try:
@@ -43,27 +41,23 @@ def compare_products():
                 "details": errors
             }), 400
 
+        async def run_tasks(urls):
+            tasks = [ScraperService.extract_content(url) for url in urls]
+            return await asyncio.gather(*tasks, return_exceptions=True)
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        results = loop.run_until_complete(run_tasks(valid_urls))
+        loop.close()
+
         scraped_results = {}
-        timeout_per_req = 30
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            future_to_url = {
-                executor.submit(ScraperService.extract_content, url, timeout_per_req): url 
-                for url in valid_urls
-            }
-            
-            for future in concurrent.futures.as_completed(future_to_url):
-                url = future_to_url[future]
-                try:
-                    content = future.result()
-                    scraped_results[url] = content
-                except ScrapingTimeoutError:
-                    scraped_results[url] = f"ERRO: Timeout de {timeout_per_req}s excedido."
-                except Exception as exc:
-                    scraped_results[url] = f"ERRO: Falha ao acessar site: {str(exc)}"
+        for url, res in zip(valid_urls, results):
+            if isinstance(res, Exception):
+                scraped_results[url] = f"ERRO: {str(res)}"
+            else:
+                scraped_results[url] = res
 
         prompt = AIService.build_prompt(scraped_results, req.attributes)
-        
         ai_data = AIService.get_comparison_data(
             prompt=prompt, 
             api_key=req.api_key, 

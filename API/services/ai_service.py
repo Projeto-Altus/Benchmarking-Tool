@@ -9,22 +9,15 @@ class AIService:
     def verify_api_key(api_key: str, provider: str):
         if not api_key:
             raise InvalidAPIKeyError("A chave de API não foi fornecida.")
-
         try:
             if provider == "openai":
                 client = OpenAI(api_key=api_key)
                 client.models.list()
-            
             elif provider == "google":
                 genai.configure(api_key=api_key)
-                try:
-                    next(iter(genai.list_models()))
-                except StopIteration:
-                    pass
-            
+                next(iter(genai.list_models()))
             else:
                 raise InvalidAPIKeyError(f"Provedor '{provider}' não suportado.")
-                
         except Exception:
             raise InvalidAPIKeyError(f"A chave de API fornecida é inválida para o provedor {provider}.")
 
@@ -37,16 +30,13 @@ class AIService:
             "--- REGRAS DE RESPOSTA ---\n"
             "1. Retorne APENAS um JSON válido.\n"
             "2. O formato deve ser uma LISTA de objetos.\n"
-            "3. Cada objeto deve representar UMA URL e conter TODOS os atributos solicitados agrupados.\n"
-            "4. Estrutura obrigatória: [{'url_origem': '...', 'atributo1': 'valor', 'atributo2': 'valor'}]\n"
-            "5. Se a informação não existir, preencha com 'N/A'.\n"
-            "6. Não utilize blocos de markdown, retorne apenas o texto do JSON puro.\n\n"
+            "3. Cada objeto deve conter 'url_origem' e conter TODOS os atributos solicitados.\n"
+            "4. Se a informação não existir, preencha com 'N/A'.\n"
+            "5. Não utilize blocos de markdown, retorne apenas o texto do JSON puro.\n\n"
             "--- DADOS DOS SITES ---\n"
         )
-
-        for i, (url, content) in enumerate(scraped_data.items()):
-            prompt += f"\n>>> SITE {i+1} (URL: {url}):\n{content[:50000]}\n"
-
+        for url, content in scraped_data.items():
+            prompt += f"\n>>> SITE (URL: {url}):\n{content[:50000]}\n"
         return prompt
 
     @staticmethod
@@ -65,7 +55,6 @@ class AIService:
                     response_format={"type": "json_object"}
                 )
                 raw_text = response.choices[0].message.content
-
             elif provider == "google":
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel('gemini-2.5-flash')
@@ -73,7 +62,6 @@ class AIService:
                 raw_text = response.text
             
             clean_text = raw_text.replace("```json", "").replace("```", "").strip()
-            
             if not (clean_text.startswith("{") or clean_text.startswith("[")):
                 import re
                 match = re.search(r'(\{.*\}|\[.*\])', clean_text, re.DOTALL)
@@ -81,7 +69,6 @@ class AIService:
                     clean_text = match.group(0)
 
             data = json.loads(clean_text)
-            
             raw_list = []
             if isinstance(data, dict):
                 if "result" in data: raw_list = data["result"]
@@ -93,15 +80,12 @@ class AIService:
             merged_data = {}
             for item in raw_list:
                 url = item.get("url_origem")
-                if not url:
-                    continue
-                
+                if not url: continue
                 if url not in merged_data:
                     merged_data[url] = item
                 else:
                     merged_data[url].update(item)
 
             return list(merged_data.values())
-
         except Exception as e:
             return [{"error": f"Erro na comunicação com a IA: {str(e)}"}]
