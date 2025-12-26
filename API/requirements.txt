@@ -1,10 +1,9 @@
 Flask
 Flask-Cors
 pandas
-openpyxl
 playwright
 pydantic
-google-generativeai
+google-genai
 openai
 openpyxl
 validators

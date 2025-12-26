@@ -1,5 +1,5 @@
 import json
-import google.generativeai as genai
+from google import genai
 from openai import OpenAI
 from typing import List, Dict
 from core.exceptions import InvalidAPIKeyError
@@ -14,8 +14,8 @@ class AIService:
                 client = OpenAI(api_key=api_key)
                 client.models.list()
             elif provider == "google":
-                genai.configure(api_key=api_key)
-                next(iter(genai.list_models()))
+                client = genai.Client(api_key=api_key)
+                next(iter(client.models.list()))
             else:
                 raise InvalidAPIKeyError(f"Provedor '{provider}' não suportado.")
         except Exception:
@@ -56,9 +56,11 @@ class AIService:
                 )
                 raw_text = response.choices[0].message.content
             elif provider == "google":
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-2.5-flash')
-                response = model.generate_content(prompt)
+                client = genai.Client(api_key=api_key)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt
+                )
                 raw_text = response.text
             
             clean_text = raw_text.replace("```json", "").replace("```", "").strip()

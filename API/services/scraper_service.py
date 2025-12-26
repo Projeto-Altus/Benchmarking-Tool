@@ -3,15 +3,18 @@ import random
 import os
 import time
 import validators
+import traceback
 from urllib.parse import urlparse
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 from core.config import Config
 from core.exceptions import InvalidURLError, ScrapingTimeoutError
 
+# Controle de Concorrência (Máximo 3 navegadores simultâneos)
+SEMAPHORE = asyncio.Semaphore(3)
+
 class ScraperService:
     USER_AGENTS = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     ]
 
@@ -20,18 +23,8 @@ class ScraperService:
         return url.strip()
 
     @staticmethod
-    async def save_debug(page, tag):
-        try:
-            timestamp = int(time.time())
-            filename = f"debug_{timestamp}_{tag}.png"
-            path_img = os.path.join(Config.DOWNLOAD_FOLDER, filename)
-            await page.screenshot(path=path_img, full_page=True)
-            print(f">>> [SCREENSHOT] Salvo: {filename}")
-        except Exception as e:
-            print(f">>> [ERRO SCREENSHOT] {str(e)}")
-
-    @staticmethod
     def validate_url(url: str):
+        """Valida se a URL está bem formatada"""
         if not url:
             raise InvalidURLError("URL vazia.")
         
@@ -39,99 +32,114 @@ class ScraperService:
         if parsed.scheme not in ('http', 'https') or not parsed.netloc:
             raise InvalidURLError(f"Protocolo ou domínio inválido: {url}")
         
+        # Validação flexível: avisa mas não bloqueia se for muito complexa
         if not validators.url(url):
-             print(f">>> [AVISO] URL complexa detectada. Ignorando trava do validador para tentar o acesso.")
+             print(f">>> [AVISO] URL complexa detectada: {url[:30]}...")
+
+    @staticmethod
+    async def save_debug(page, tag):
+        """Salva screenshot garantindo que a pasta existe"""
+        try:
+            folder = Config.DOWNLOAD_FOLDER
+            if not os.path.exists(folder):
+                os.makedirs(folder, exist_ok=True)
+
+            timestamp = int(time.time())
+            # Limpa caracteres ruins da URL para o nome do arquivo
+            safe_tag = "".join([c if c.isalnum() else "_" for c in tag])[-50:]
+            filename = f"debug_{timestamp}_{safe_tag}.png"
+            path_img = os.path.join(folder, filename)
+            
+            await page.screenshot(path=path_img, full_page=True)
+            print(f">>> [SCREENSHOT] Salvo: {filename}")
+        except Exception as e:
+            print(f">>> [ERRO SCREENSHOT] Não foi possível salvar: {str(e)}")
 
     @classmethod
     async def apply_stealth(cls, page):
         await page.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
             window.chrome = { runtime: {} };
-            Object.defineProperty(navigator, 'languages', {get: () => ['pt-BR', 'pt', 'en-US', 'en']});
-            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
         """)
 
     @classmethod
-    async def extract_content(cls, url: str, timeout: int = 30) -> str:
+    async def extract_content(cls, url: str, timeout: int = 40) -> str:
         current_url = cls.clean_url(url)
-        print(f"\n{'='*60}\n[PROCESSO] Iniciando acesso: {current_url}")
+        print(f"\n{'='*60}\n[PROCESSO] Iniciando: {current_url}")
         
+        # Chama a validação antes de abrir o navegador
         try:
             cls.validate_url(current_url)
         except InvalidURLError as e:
-            print(f"[ABORTADO] {str(e)}")
+            print(f"[ABORTADO] URL Inválida: {str(e)}")
             raise e
 
         last_error = None
         max_retries = 3
 
-        for attempt in range(max_retries):
-            print(f"[TENTATIVA {attempt + 1}/{max_retries}] Abrindo navegador...")
-            async with async_playwright() as p:
-                browser = await p.chromium.launch(
-                    headless=Config.HEADLESS,
-                    args=[
-                        "--disable-blink-features=AutomationControlled",
-                        "--no-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-web-security"
-                    ]
-                )
+        async with SEMAPHORE:
+            for attempt in range(max_retries):
+                print(f"[TENTATIVA {attempt + 1}/{max_retries}] Abrindo navegador para {current_url[:30]}...")
                 
-                context = await browser.new_context(
-                    user_agent=random.choice(cls.USER_AGENTS),
-                    viewport={"width": 1920, "height": 1080}
-                )
-                
-                page = await context.new_page()
-                await cls.apply_stealth(page)
-                
-                if attempt == 0:
-                    await page.route("**/*.{png,jpg,jpeg,gif,webp,svg,woff,woff2,otf}", lambda route: route.abort())
-
-                timeout_ms = timeout * 1000
-                page.set_default_timeout(timeout_ms)
-
+                browser = None
                 try:
-                    await page.goto(current_url, wait_until="domcontentloaded", timeout=timeout_ms)
-                    
-                    wait_time = 5 + (attempt * 2)
-                    print(f"[AGUARDANDO] {wait_time}s para renderização completa...")
-                    await asyncio.sleep(wait_time)
-                    
-                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                    await asyncio.sleep(2)
+                    async with async_playwright() as p:
+                        browser = await p.chromium.launch(
+                            headless=Config.HEADLESS,
+                            args=["--no-sandbox", "--disable-dev-shm-usage"]
+                        )
+                        
+                        context = await browser.new_context(
+                            user_agent=random.choice(cls.USER_AGENTS),
+                            viewport={"width": 1920, "height": 1080}
+                        )
+                        page = await context.new_page()
+                        await cls.apply_stealth(page)
 
-                    content = await page.inner_text("body")
-                    char_count = len(content)
-                    print(f"[INFO] {char_count} caracteres extraídos.")
+                        try:
+                            timeout_ms = timeout * 1000
+                            page.set_default_timeout(timeout_ms)
+                            
+                            response = await page.goto(current_url, wait_until="domcontentloaded", timeout=timeout_ms)
+                            print(f"[DEBUG] Navegação OK (Status: {response.status if response else 'N/A'}). Renderizando...")
+                            
+                            await asyncio.sleep(5)
+                            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                            await asyncio.sleep(2)
+                            
+                            content = await page.inner_text("body")
+                            char_count = len(content)
+                            print(f"[INFO] {char_count} caracteres extraídos.")
 
-                    await cls.save_debug(page, f"tentativa_{attempt}_final")
+                            await cls.save_debug(page, f"SUCESSO_{current_url}")
 
-                    if char_count > 500 and "captcha" not in content.lower():
-                        print(f"[SUCESSO] Scraping finalizado.")
-                        await browser.close()
-                        return content[:100000]
-                    
-                    if char_count < 200:
-                        raise Exception("Conteúdo insuficiente (Página de bloqueio ou erro).")
-                    
-                    print(f"[AVISO] Conteúdo capturado pode estar incompleto.")
-                    return content[:100000]
+                            if char_count > 200:
+                                await browser.close()
+                                return content[:100000]
+                            
+                            print("[AVISO] Página vazia.")
+                            raise Exception("Conteúdo vazio")
+
+                        except Exception as e_inner:
+                            print(f"[ERRO NA NAVEGAÇÃO] {str(e_inner)}")
+                            await cls.save_debug(page, f"ERRO_{current_url}")
+                            raise e_inner
 
                 except PlaywrightTimeout:
-                    print(f"[TIMEOUT] A página demorou demais para responder.")
+                    print(f"[TIMEOUT] A página demorou demais.")
                     last_error = ScrapingTimeoutError(f"Timeout de {timeout}s")
                 except Exception as e:
-                    print(f"[ERRO TÉCNICO] {str(e)}")
+                    print(f"[ERRO CRÍTICO] {str(e)}")
+                    # traceback.print_exc() # Descomente se quiser ver o log completo do erro
                     last_error = e
                 finally:
-                    await browser.close()
-            
-            if attempt < max_retries - 1:
-                delay = random.uniform(3, 6)
-                print(f"[REPETIR] Nova tentativa em {delay:.1f}s...")
-                await asyncio.sleep(delay)
+                    if browser:
+                        await browser.close()
+                
+                if attempt < max_retries - 1:
+                    wait_retry = random.uniform(3, 6)
+                    print(f"[REPETIR] Aguardando {wait_retry:.1f}s...")
+                    await asyncio.sleep(wait_retry)
 
-        print(f"[FALHA] Não foi possível obter os dados de {current_url}")
-        raise last_error
+            print(f"[FALHA FINAL] Desistindo de {current_url}")
+            return ""
