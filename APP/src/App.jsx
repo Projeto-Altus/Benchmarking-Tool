@@ -1,57 +1,84 @@
 import { useState, useEffect } from 'react';
-import './app.css';
+import { useBenchmarking } from './hooks/useBenchmarking'; 
+import './App.css';
 
 const translations = {
   pt: {
     title: 'Ferramenta de Benchmarking',
-    apiKey: 'Chave API',
+    apiKey: 'Chave API (OpenAI)',
     import: 'Importar Dados',
-    export: 'Exportar Dados',
+    export: 'Baixar Relatório Excel',
     urlsLabel: 'URLS dos produtos',
     urlsCount: 'x URLS adicionadas',
     clearUrls: 'Limpar URLS',
-    attrsLabel: 'Atributos',
+    attrsLabel: 'Atributos para Análise',
     attrsCount: 'x atributos definidos',
     clearAttrs: 'Limpar atributos',
     generate: 'Gerar Benchmark',
-    results: 'Resultados',
-    analyzing: 'Analisando URLS e atributos definidos',
+    results: 'Resultados da Análise',
+    analyzing: 'Enviando para IA e aguardando resposta...',
     finished: 'Análise concluída ✅',
+    error: 'Erro na análise ❌',
     noUrls: '(nenhuma URL)',
     noAttrs: '(nenhum atributo)',
-    langLabel: 'PT'
+    langLabel: 'PT',
+    downloadReady: 'Relatório pronto!'
   },
   en: {
     title: 'Benchmarking Tool',
-    apiKey: 'API Key',
+    apiKey: 'API Key (OpenAI)',
     import: 'Import Data',
-    export: 'Export Data',
+    export: 'Download Excel Report',
     urlsLabel: 'Product URLs',
     urlsCount: 'x URLs added',
     clearUrls: 'Clear URLs',
-    attrsLabel: 'Attributes',
+    attrsLabel: 'Analysis Attributes',
     attrsCount: 'x attributes defined',
     clearAttrs: 'Clear attributes',
     generate: 'Generate Benchmark',
-    results: 'Results',
-    analyzing: 'Analyzing URLs and defined attributes',
+    results: 'Analysis Results',
+    analyzing: 'Sending to AI and waiting for response...',
     finished: 'Analysis completed ✅',
+    error: 'Analysis error ❌',
     noUrls: '(no URLs)',
     noAttrs: '(no attributes)',
-    langLabel: 'EN'
+    langLabel: 'EN',
+    downloadReady: 'Report ready!'
   }
 };
 
 function App() {
   const [lang, setLang] = useState(localStorage.getItem('lang') || 'pt');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  
+  const [apiKey, setApiKey]  // Estados de entrada
+ = useState('');
   const [urlInput, setUrlInput] = useState('');
   const [urlList, setUrlList] = useState([]);
   const [attrInput, setAttrInput] = useState('');
   const [attrList, setAttrList] = useState([]);
-  const [busy, setBusy] = useState(false);
-  const [results, setResults] = useState([]);
+
+  const { 
+    generateBenchmark, 
+    results, 
+    downloadLink, 
+    loading, 
+    error 
+  } = useBenchmarking();
+
   const [analyzingText, setAnalyzingText] = useState('');
+
+  useEffect(() => {
+    if (loading) {
+      setAnalyzingText(translations[lang].analyzing);
+    } else if (error) {
+      setAnalyzingText(`${translations[lang].error}: ${error}`);
+    } else if (results) {
+      setAnalyzingText(translations[lang].finished);
+    } else {
+      setAnalyzingText('');
+    }
+  }, [loading, error, results, lang]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -92,37 +119,49 @@ function App() {
   const removeAttr = (index) => setAttrList(attrList.filter((_,i)=>i!==index));
   const clearAttrs = () => setAttrList([]);
 
-  const simulateAnalysis = (urlsList, attrsList) => {
-    return urlsList.map(url => ({
-      url,
-      checks: attrsList.map(attr => ({ attr, ok: attr.length > 0 && url.toLowerCase().includes(attr.toLowerCase()) }))
-    }));
+  const handleGenerate = () => {
+    if (urlList.length === 0) {
+        alert("Adicione pelo menos uma URL.");
+        return;
+    }
+    if (!apiKey) {
+        alert("A Chave API é obrigatória.");
+        return;
+    }
+
+    generateBenchmark({
+      apiKey,
+      urls: urlList,
+      attributes: attrList
+    });
   };
 
-  const handleGenerate = () => {
-    setBusy(true);
-    setAnalyzingText(translations[lang].analyzing);
-
-    setTimeout(() => {
-      const res = simulateAnalysis(
-        urlList.length ? urlList : [translations[lang].noUrls],
-        attrList.length ? attrList : [translations[lang].noAttrs]
-      );
-      setResults(res);
-      setAnalyzingText(translations[lang].finished);
-      setBusy(false);
-      setTimeout(() => setAnalyzingText(''), 2500);
-    }, 1800);
+  const handleDownload = () => {
+    if (downloadLink) {
+      window.open(downloadLink, '_blank');
+    }
   };
 
   const escapeHtml = (text) => {
     return String(text).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
   };
 
-  // Função para truncar URLs longas
   const truncateUrl = (url, maxLength = 60) => {
     if (url.length <= maxLength) return url;
     return url.slice(0, maxLength) + '...';
+  };
+
+  const renderResultContent = (content) => {
+    if (typeof content === 'object') {
+      return (
+        <ul className="result-list-obj">
+          {Object.entries(content).map(([key, val], k) => (
+             <li key={k}><strong>{key}:</strong> {String(val)}</li>
+          ))}
+        </ul>
+      );
+    }
+    return <p>{String(content)}</p>;
   };
 
   return (
@@ -155,56 +194,66 @@ function App() {
         <section className="card left-card">
           <div className="left-inner">
             <div className="top-row">
-              <input className="api-key" placeholder={translations[lang].apiKey} disabled={busy} />
+              <input 
+                className="api-key" 
+                placeholder={translations[lang].apiKey} 
+                disabled={loading}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                type="password"
+              />
               <div className="import-export">
-                <button className="btn small import" disabled={busy}>{translations[lang].import}</button>
-                <button className="btn small export" disabled={busy}>{translations[lang].export}</button>
+                {downloadLink && (
+                  <button className="btn small export" onClick={handleDownload} title={translations[lang].downloadReady}>
+                    ⬇ XLSX
+                  </button>
+                )}
               </div>
             </div>
 
             <div className="section">
               <label className="label">{translations[lang].urlsLabel}</label>
               <div className="input-row">
-                <input className="textarea" value={urlInput} onChange={e=>setUrlInput(e.target.value)} disabled={busy} placeholder="Adicionar URL"/>
-                <button className="btn small" onClick={addUrl} disabled={busy}>+</button>
+                <input className="textarea" value={urlInput} onChange={e=>setUrlInput(e.target.value)} disabled={loading} placeholder="https://..."/>
+                <button className="btn small" onClick={addUrl} disabled={loading}>+</button>
               </div>
               <div className="muted">{urlList.length} {translations[lang].urlsCount}</div>
               <ul>
                 {urlList.map((u,i)=>(
                   <li key={i}>
                     <span title={u}>{escapeHtml(truncateUrl(u))}</span>
-                    <button className="btn clear small" onClick={()=>removeUrl(i)} disabled={busy}>✖</button>
+                    <button className="btn clear small" onClick={()=>removeUrl(i)} disabled={loading}>✖</button>
                   </li>
                 ))}
               </ul>
               <div className="section-controls">
-                <button className="btn clear small" onClick={clearUrls} disabled={busy}>{translations[lang].clearUrls}</button>
+                <button className="btn clear small" onClick={clearUrls} disabled={loading}>{translations[lang].clearUrls}</button>
               </div>
             </div>
 
             <div className="section">
               <label className="label">{translations[lang].attrsLabel}</label>
               <div className="input-row">
-                <input className="textarea" value={attrInput} onChange={e=>setAttrInput(e.target.value)} disabled={busy} placeholder="Adicionar atributo"/>
-                <button className="btn small" onClick={addAttr} disabled={busy}>+</button>
+                <input className="textarea" value={attrInput} onChange={e=>setAttrInput(e.target.value)} disabled={loading} placeholder="Ex: Preço, Material, Garantia"/>
+                <button className="btn small" onClick={addAttr} disabled={loading}>+</button>
               </div>
               <div className="muted">{attrList.length} {translations[lang].attrsCount}</div>
               <ul>
                 {attrList.map((a,i)=>(
                   <li key={i}>
-                    {escapeHtml(a)} <button className="btn clear small" onClick={()=>removeAttr(i)} disabled={busy}>✖</button>
+                    {escapeHtml(a)} <button className="btn clear small" onClick={()=>removeAttr(i)} disabled={loading}>✖</button>
                   </li>
                 ))}
               </ul>
               <div className="section-controls">
-                <button className="btn clear small" onClick={clearAttrs} disabled={busy}>{translations[lang].clearAttrs}</button>
+                <button className="btn clear small" onClick={clearAttrs} disabled={loading}>{translations[lang].clearAttrs}</button>
               </div>
             </div>
           </div>
 
           <div className="left-footer">
-            <button className="btn generate" onClick={handleGenerate} disabled={busy}>
-              {busy ? (lang==='pt'?'Gerando...':'Generating...') : translations[lang].generate}
+            <button className="btn generate" onClick={handleGenerate} disabled={loading}>
+              {loading ? (lang==='pt'?'Processando...':'Processing...') : translations[lang].generate}
             </button>
           </div>
         </section>
@@ -212,26 +261,24 @@ function App() {
         <aside className="card right-card">
           <h2 className="results-title">{translations[lang].results}</h2>
           <div className="results-body">
-            {busy && <div className="spinner"></div>}
-            {!busy && results.length > 0 && (
+            {loading && <div className="spinner"></div>}
+            
+            {!loading && results && (
               <div className="results-content">
-                {results.map((r,i)=>(
+                {Object.entries(results).map(([url, data], i) => (
                   <div className="result-item" key={i}>
-                    <div className="result-url" title={r.url}>{escapeHtml(truncateUrl(r.url))}</div>
-                    <ul className="result-list">
-                      {r.checks.map((c,j)=>(
-                        <li key={j}>
-                          <span className={c.ok ? 'ok' : 'nok'}>{c.ok ? '✔' : '✖'}</span>
-                          <strong>{escapeHtml(c.attr)}</strong>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="result-url" title={url}>{escapeHtml(truncateUrl(url))}</div>
+                    <div className="result-data">
+                        {renderResultContent(data)}
+                    </div>
                   </div>
                 ))}
               </div>
             )}
+            
+            {!loading && !results && <p className="no-data">{translations[lang].noUrls}</p>}
           </div>
-          <p className="results-sub">{analyzingText}</p>
+          <p className="results-sub" style={{marginTop: '10px'}}>{analyzingText}</p>
         </aside>
       </main>
     </div>
