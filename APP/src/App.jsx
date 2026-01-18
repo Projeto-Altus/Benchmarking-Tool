@@ -15,6 +15,7 @@ function App() {
   const t = translations[lang];
 
   const [apiKey, setApiKey] = useState('');
+  const [provider, setProvider] = useState(localStorage.getItem('provider') || 'google');
   const [urlList, setUrlList] = useState([]);
   const [attrWithImportance, setAttrWithImportance] = useState([]);
 
@@ -36,6 +37,10 @@ function App() {
     localStorage.setItem('lang', lang);
   }, [lang]);
 
+  useEffect(() => {
+    localStorage.setItem('provider', provider);
+  }, [provider]);
+
   const toggleLang = () => setLang(prev => prev === 'pt' ? 'en' : 'pt');
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
@@ -44,6 +49,7 @@ function App() {
       apiKey,
       urls: urlList,
       attributes: attrWithImportance,
+      provider,
       t 
     });
   };
@@ -71,10 +77,21 @@ function App() {
                 onChange={(e) => setApiKey(e.target.value)}
                 type="password"
               />
-              <div className="import-export">
-                <button className="btn small import" disabled={loading}>{t.import}</button>
-                <button className="btn small export" disabled={loading}>{t.export}</button>
-              </div>
+              <select 
+                className="input-field" 
+                value={provider} 
+                onChange={(e) => setProvider(e.target.value)}
+                disabled={loading}
+                style={{ width: '120px', marginLeft: '8px' }}
+              >
+                <option value="openai">OpenAI</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="google">Gemini</option>
+              </select>
+            </div>
+            <div className="import-export">
+              <button className="btn small import" disabled={loading}>{t.import}</button>
+              <button className="btn small export" disabled={loading}>{t.export}</button>
             </div>
 
             <UrlManager 

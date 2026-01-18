@@ -8,7 +8,7 @@ export const useBenchmarking = () => {
   const [error, setError] = useState(null);
   const [statusMessage, setStatusMessage] = useState('');
 
-  const generateBenchmark = useCallback(async ({ apiKey, urls, attributes, t }) => {
+  const generateBenchmark = useCallback(async ({ apiKey, urls, attributes, provider = "google", t }) => {
     setLoading(true);
     setError(null);
     setResults(null);
@@ -23,7 +23,7 @@ export const useBenchmarking = () => {
         api_key: apiKey,
         urls: urls,
         attributes: attributes,
-        provider: "google"
+        provider: provider
       });
 
       const data = response.data;
