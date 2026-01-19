@@ -5,7 +5,7 @@ from datetime import datetime
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
-from ..core.config import Config
+from core.config import Config
 
 class ExportService:
     @staticmethod

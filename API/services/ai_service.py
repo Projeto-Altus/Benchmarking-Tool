@@ -2,7 +2,7 @@ import json
 from google import genai
 from openai import OpenAI
 from typing import List, Dict
-from ..core.exceptions import InvalidAPIKeyError
+from core.exceptions import InvalidAPIKeyError
 
 class AIService:
     @staticmethod
