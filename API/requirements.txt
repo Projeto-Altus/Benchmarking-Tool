@@ -8,3 +8,4 @@ openai
 openpyxl
 validators
 playwright-stealth
+requests

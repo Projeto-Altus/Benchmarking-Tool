@@ -6,8 +6,8 @@ import validators
 import traceback
 from urllib.parse import urlparse
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
-from core.config import Config
-from core.exceptions import InvalidURLError, ScrapingTimeoutError
+from ..core.config import Config
+from ..core.exceptions import InvalidURLError, ScrapingTimeoutError
 
 SEMAPHORE = asyncio.Semaphore(3)
 

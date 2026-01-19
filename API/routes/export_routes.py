@@ -1,5 +1,5 @@
 from flask import Blueprint, send_from_directory, jsonify
-from core.config import Config
+from ..core.config import Config
 
 export_bp = Blueprint('export', __name__)
 

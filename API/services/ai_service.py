@@ -2,7 +2,7 @@ import json
 from google import genai
 from openai import OpenAI
 from typing import List, Dict
-from core.exceptions import InvalidAPIKeyError
+from ..core.exceptions import InvalidAPIKeyError
 
 class AIService:
     @staticmethod
@@ -12,6 +12,9 @@ class AIService:
         try:
             if provider == "openai":
                 client = OpenAI(api_key=api_key)
+                client.models.list()
+            elif provider == "deepseek":
+                client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
                 client.models.list()
             elif provider == "google":
                 client = genai.Client(api_key=api_key)
@@ -59,6 +62,17 @@ class AIService:
                     ],
                     temperature=0.2,
                     response_format={"type": "json_object"}
+                )
+                raw_text = response.choices[0].message.content
+            elif provider == "deepseek":
+                client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+                response = client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful data extraction assistant that outputs only valid JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.2
                 )
                 raw_text = response.choices[0].message.content
             elif provider == "google":
