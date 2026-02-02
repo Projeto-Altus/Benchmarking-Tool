@@ -1,0 +1,191 @@
+:root {
+  --color-premium-blue: #0070f3;
+  --color-success-green: #00c853;
+  --color-warning-orange: #ffab00;
+  --color-danger-red: #ff3d00;
+  --color-ai-gold: #b45309;
+  --color-ai-bg-light: #fffdf5;
+}
+
+/* --- Container Base --- */
+.premium-product-card {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: visible; /* Necessário para a coroa e badge diagonal */
+  height: 100%;
+}
+
+.premium-product-card:hover {
+  border-color: #333;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+/* --- Coroa Minimalista --- */
+.winner-crown-wrapper {
+  position: absolute;
+  top: -18px;
+  right: -12px;
+  z-index: 10;
+  transform: rotate(15deg);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.minimal-crown-svg {
+  width: 50px;
+  height: 50px;
+  color: #D4AF37; 
+  filter: drop-shadow(10px 10px 8px rgba(0, 0, 0, 0.221));
+  display: block;
+}
+
+/* --- Badge Superior (Geométrico) --- */
+.ai-fallback-patch {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-warning-orange);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 20px;
+  margin-bottom: 12px;
+  margin-left: -5px;
+  letter-spacing: 0.08em;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+}
+
+.sparkle-mini { 
+  margin-right: 6px; 
+  font-size: 12px;
+}
+
+/* --- Fallback Total --- */
+.premium-product-card.is-total-fallback {
+  border: 1.5px solid var(--color-warning-orange);
+  background-color: var(--color-ai-bg-light);
+}
+
+.card-inner-content {
+  padding: 24px;
+  flex: 1;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  min-height: 80px;
+}
+
+.product-name-text {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: #111;
+  line-height: 1.3;
+}
+
+.product-url-link {
+  font-size: 12px;
+  color: var(--color-premium-blue);
+  text-decoration: none;
+}
+
+.product-url-link:hover { text-decoration: underline; }
+
+/* --- Badge IA Azul --- */
+.ai-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.ai-sparkle-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-premium-blue);
+  margin-right: 4px;
+}
+
+.ai-label-blue {
+  color: var(--color-premium-blue);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* --- Resumo e Texto --- */
+.ai-summary-container {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid #eee;
+}
+
+.ai-summary-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #444;
+  margin: 0;
+}
+
+.ai-summary-text.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.expand-trigger-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.expand-link-text {
+  color: var(--color-premium-blue);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.specs-list-container { display: flex; flex-direction: column; gap: 12px; }
+
+.spec-item-row { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding-bottom: 8px; 
+  border-bottom: 1px solid #f3f3f3; 
+}
+
+.spec-name-label { font-size: 12px; color: #666; font-weight: 500; }
+.spec-value-text { font-size: 13px; font-weight: 600; color: #111; text-align: right; }
+.text-orange-bold { color: var(--color-ai-gold); font-weight: 700; }
+
+.info-icon-tag { 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 15px; 
+  height: 15px; 
+  background: #fffbeb; 
+  color: var(--color-ai-gold); 
+  border: 1px solid #f59e0b; 
+  border-radius: 50%; 
+  font-size: 10px; 
+  font-family: serif; 
+  font-weight: 900; 
+  margin-left: 6px; 
+}
+
+.score-badge-minimal { font-size: 28px; font-weight: 800; }
+.sh { color: var(--color-success-green); }
+.sm { color: var(--color-warning-orange); }
+.sl { color: var(--color-danger-red); }
