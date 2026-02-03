@@ -46,7 +46,6 @@ const ReportView = ({ results, attributes, onBack, t }) => {
           </div>
           <div className="meta-data">
             <div className="meta-item"><Calendar size={14} /> {currentDate}</div>
-            <div className="meta-item"><FileText size={14} /> Ref: Análise de Mercado #{Math.floor(Math.random() * 1000)}</div>
           </div>
         </header>
 
