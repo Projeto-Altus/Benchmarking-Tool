@@ -49,6 +49,23 @@ class ExportService:
         
         df = df[fixed_fields + attr_fields]
 
+        def determine_source(row):
+            if row.get('generated_by_ai') is True or row.get('generated_by_ai') == 1:
+                return "Gerado por IA"
+            
+            for val in row.values:
+                if isinstance(val, str) and "(est.)" in val:
+                    return "Dados Reais + IA"
+            
+            return "Dados Reais"
+
+        df['generated_by_ai'] = df.apply(determine_source, axis=1)
+
+        currency_keywords = ['preço', 'valor', 'custo', 'price']
+        for col in df.columns:
+            if any(k in col.lower() for k in currency_keywords):
+                df[col] = df[col].apply(lambda x: x if (isinstance(x, str) and "(est.)" in x) else ExportService._clean_currency_value(x))
+
         df_t = df.T
         
         label_map = {
@@ -64,10 +81,6 @@ class ExportService:
         df_t.reset_index(inplace=True)
         df_t.rename(columns={'index': 'ESPECIFICAÇÕES'}, inplace=True)
         
-        if '🤖 Fonte dos Dados' in df_t['ESPECIFICAÇÕES'].values:
-            df_t.loc[df_t['ESPECIFICAÇÕES'] == '🤖 Fonte dos Dados'] = \
-                df_t.loc[df_t['ESPECIFICAÇÕES'] == '🤖 Fonte dos Dados'].replace({True: 'Gerado por IA', False: 'Dados Reais', 1: 'Gerado por IA', 0: 'Dados Reais'})
-
         if not os.path.exists(Config.DOWNLOAD_FOLDER):
             os.makedirs(Config.DOWNLOAD_FOLDER, exist_ok=True)
 
@@ -82,9 +95,9 @@ class ExportService:
         label_fill = PatternFill(start_color="E7E6E6", end_color="E7E6E6", fill_type="solid") 
         winner_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid") 
         
-        ai_column_fill = PatternFill(start_color="FFF8DC", end_color="FFF8DC", fill_type="solid") 
-        estimate_fill = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid") 
-        estimate_font = Font(color="B45F04", italic=True) 
+        ai_full_column_fill = PatternFill(start_color="FFF8DC", end_color="FFF8DC", fill_type="solid")
+        estimate_cell_fill = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid")
+        estimate_font = Font(color="B45F04", italic=True, bold=True)
         
         header_font = Font(color="FFFFFF", bold=True, size=11)
         bold_font = Font(bold=True)
@@ -101,8 +114,9 @@ class ExportService:
             ws.column_dimensions[col_letter].width = 45
 
         ai_columns_indices = []
+        
         for row in ws.iter_rows():
-            if str(row[0].value) == '🤖 Fonte dos Dados':
+            if "Fonte dos Dados" in str(row[0].value):
                 for cell in row:
                     if cell.value == 'Gerado por IA':
                         ai_columns_indices.append(cell.column)
@@ -114,11 +128,10 @@ class ExportService:
                 cell.alignment = center_align 
                 
                 if cell.column in ai_columns_indices and cell.column != 1 and cell.row != 1:
-                    cell.fill = ai_column_fill
+                    cell.fill = ai_full_column_fill
 
                 row_label = str(ws.cell(row=cell.row, column=1).value).lower()
-                val_str = str(cell.value)
-
+                
                 if cell.row == 1:
                     cell.fill = header_fill
                     cell.font = header_font
@@ -136,24 +149,24 @@ class ExportService:
                 if cell.column == 2 and "Pontuação" in row_label:
                     cell.font = bold_font
 
-                is_estimated = False
-                if isinstance(cell.value, str) and "(est.)" in cell.value:
-                    is_estimated = True
-                    clean_text = cell.value.replace("(est.)", "").strip()
-                    cell.value = clean_text
-                    cell.fill = estimate_fill
+                val_str = str(cell.value)
+                
+                if "(est.)" in val_str:
+                    clean_text = val_str.replace("(est.)", "").strip()
+                    
+                    numeric_val = ExportService._clean_currency_value(clean_text)
+                    cell.value = numeric_val
+                    
+                    cell.fill = estimate_cell_fill
                     cell.font = estimate_font
 
-                if "link" in row_label and cell.value and "http" in str(cell.value):
-                    cell.hyperlink = cell.value
+                if "link" in row_label and val_str and "http" in val_str:
+                    cell.hyperlink = val_str
                     cell.value = "Ver Oferta 🔗"
                     cell.font = link_font
                 
-                elif ("preço" in row_label or "valor" in row_label) and cell.value != "N/A":
-                    numeric_val = ExportService._clean_currency_value(cell.value)
-                    if isinstance(numeric_val, (int, float)):
-                        cell.value = numeric_val
-                        cell.number_format = 'R$ #,##0.00'
+                elif isinstance(cell.value, (int, float)) and ("preço" in row_label or "valor" in row_label):
+                    cell.number_format = 'R$ #,##0.00'
 
                 elif "análise" in row_label or "motivo" in row_label:
                     cell.alignment = top_left_align
@@ -161,11 +174,16 @@ class ExportService:
                     estimated_height = max(100, (text_len / 50) * 15)
                     current_height = ws.row_dimensions[cell.row].height or 0
                     if estimated_height > current_height:
-                        ws.row_dimensions[cell.row].height = min(estimated_height, 250)
+                        ws.row_dimensions[cell.row].height = min(estimated_height, 300)
 
                 elif "fonte dos dados" in row_label:
-                    if "Gerado por IA" in str(cell.value):
+                    if "Gerado por IA" == str(cell.value):
                         cell.font = Font(color="9C5700", bold=True)
+                    elif "Dados Reais + IA" == str(cell.value):
+                        cell.font = Font(color="2F5597", bold=True)
+                    else:
+                        cell.font = Font(color="006100", bold=True)
+                    
                     cell.alignment = center_align
 
                 elif len(str(cell.value)) > 40:
