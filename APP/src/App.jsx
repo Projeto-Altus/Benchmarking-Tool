@@ -203,7 +203,14 @@ function App() {
           </main>
 
           <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)} t={t} />
-          <PasswordModal isOpen={showPasswordModal} onConfirm={handlePasswordConfirm} onCancel={() => setShowPasswordModal(false)} title={passwordModalMode === 'save' ? 'Salvar API Key' : 'Carregar API Key'} loading={passwordLoading} />
+          <PasswordModal 
+            isOpen={showPasswordModal} 
+            onConfirm={handlePasswordConfirm} 
+            onCancel={() => setShowPasswordModal(false)} 
+            mode={passwordModalMode} 
+            loading={passwordLoading}
+            t={t} 
+          />
         </>
       )}
     </div>

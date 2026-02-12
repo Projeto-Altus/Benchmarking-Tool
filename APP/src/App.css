@@ -33,8 +33,7 @@ body { font-family: 'Inria Sans', system-ui, sans-serif; background: var(--bg-bo
   gap: 24px; 
   
   justify-content: center; 
-  padding-right: 344px; 
-
+  padding: 10px 20px; 
   width: 100%; 
   height: calc(100vh - 70px); 
   margin: 10px 0 0 0; 
@@ -85,16 +84,13 @@ select.input-field {
 
 @media (max-width: 1460px) {
   .main-grid { 
-    padding-right: 0; 
     grid-template-columns: 320px 1fr 1fr; 
-    overflow-x: auto; 
-    justify-content: flex-start;
+    padding: 10px 15px; 
   }
 }
 
 @media (max-width: 1400px) {
   .main-grid { 
-    padding-right: 0; 
     grid-template-columns: 260px 1fr 1fr; 
     overflow-x: auto; 
     justify-content: flex-start;

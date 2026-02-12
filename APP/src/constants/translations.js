@@ -4,6 +4,8 @@ export const translations = {
     apiKey: 'Chave API',
     import: 'Importar Dados',
     export: 'Exportar Dados',
+    benchmarkData: 'Dados do Benchmark', 
+    processing: 'Processando...',
     urlsLabel: 'URLS dos produtos',
     urlsCount: 'x URLS adicionadas',
     clearUrls: 'Limpar URLS',
@@ -24,16 +26,20 @@ export const translations = {
     noResultsYet: 'Nenhum resultado gerado.',
     error: 'Erro',
     download: 'Baixar Relatório',
-    guide: {
+   guide: {
       title: '🚀 Guia Rápido: Altus Benchmarking',
       intro: 'Esta ferramenta combina web scraping e Inteligência Artificial para ler páginas de produtos, extrair especificações técnicas e calcular a melhor opção de compra baseada nas suas prioridades.',
+      dashboard: {
+        title: '📊 Dashboard & KPIs',
+        text: 'Sua central de inteligência. Acompanhe métricas vitais como "Tempo Economizado" e "Ganho de Eficiência". Acesse rapidamente suas Análises Fixadas (Favoritos) ou consulte o histórico completo de pesquisas anteriores.'
+      },
       step1: {
         title: '🔑 1. Obter sua Chave de API (Gratuita)',
         text: 'A análise é feita pelo Google Gemini. Para utilizá-lo, é necessária uma chave de acesso:',
         list: [
           'Acesse o Google AI Studio.',
           'Faça login com sua conta Google.',
-          'Clique no botão azul "Get API key" ou "Create API key".',
+          'Clique no botão azul "Get API key".', 
           'Copie o código gerado e cole no campo "Chave API" aqui na ferramenta.'
         ]
       },
@@ -46,9 +52,20 @@ export const translations = {
         text: 'Defina o que você quer comparar (ex: "Preço", "Bateria", "Câmera").',
         list: [
           'Defina o Peso (1 a 10): Ao lado de cada atributo, escolha a importância dele.',
-          'Como funciona a Nota: A IA atribuirá uma nota de 0 a 100 baseada estritamente nesses pesos. Se "Preço" tiver peso 10, um produto barato ganhará muito mais pontos do que um produto caro, mesmo que este tenha outros atributos bons.'
+          'Nota Inteligente: A IA calcula a pontuação (0-100) baseada estritamente nesses pesos. Se "Preço" tem peso 10, o produto mais barato ganha destaque total.'
         ]
       }
+    },
+    passwordModal: {
+      titleSave: 'Salvar Chave API',
+      titleLoad: 'Carregar Chave API',      
+      instruction: 'Esta senha será usada para criptografar sua Chave API. Nós não a armazenamos.',
+      placeholder: 'Digite sua senha segura',
+      errorEmpty: 'A senha não pode estar vazia',
+      errorGeneric: 'Erro ao processar senha',
+      cancel: 'Cancelar',
+      confirm: 'Confirmar',
+      processing: 'Processando...'
     },
     configTitle: 'Conexão da IA',
     aiProvider: 'Provedor de IA',
@@ -76,7 +93,20 @@ export const translations = {
     dashEfficiencyDesc: 'Média de economia vs. opção mais cara.',
     dashProductsAnalyzed: 'Produtos Analisados',
     dashSystemNotice: 'Aviso do Sistema',
-    dashNoticeText: 'Como acessamos sites em tempo real, bloqueios eventuais podem ocorrer. Para sua segurança, todo conteúdo gerado por IA é claramente sinalizado.'
+    dashNoticeText: 'Como acessamos sites em tempo real, bloqueios eventuais podem ocorrer. Para sua segurança, todo conteúdo gerado por IA é claramente sinalizado.',
+    invalidUrl: 'URL inválida. Inclua http:// ou https://',
+    urlExists: 'Esta URL já está na lista.',
+    pasteLink: 'Cole o link do produto aqui...',
+    productList: 'Lista de Produtos',
+    noUrlsAdded: 'Nenhuma URL adicionada',
+    attrPlaceholder: 'Ex: Preço, Câmera, Design...',
+    definedCriteria: 'Critérios Definidos',
+    weight: 'PESO',
+    weightTooltip: 'Peso de 1 a 10',
+    noAttributesDefined: 'Nenhum atributo definido',
+    backToDashboard: 'Voltar ao Dashboard',
+    guideBtn: 'Guia',
+    logoAlt: 'Logo Altus',
   },
   en: {
     title: 'Benchmarking Tool',
@@ -84,6 +114,8 @@ export const translations = {
     import: 'Import Data',
     export: 'Export Data',
     urlsLabel: 'Product URLs',
+    benchmarkData: 'Benchmark Data',
+    processing: 'Processing...',
     urlsCount: 'x URLs added',
     clearUrls: 'Clear URLs',
     attrsLabel: 'Attributes and Importance',
@@ -106,13 +138,17 @@ export const translations = {
     guide: {
       title: '🚀 Quick Guide: Altus Benchmarking',
       intro: 'This tool leverages web scraping and AI agents to read product pages, extract technical specs, and calculate the best purchasing option customized to your needs.',
+      dashboard: {
+        title: '📊 Dashboard & KPIs',
+        text: 'Your intelligence center. Track vital metrics like "Time Saved" and "Efficiency Gain". Quickly access your Pinned Analyses (Favorites) or review the complete history of previous searches.'
+      },
       step1: {
         title: '🔑 1. Get your API Key (Free)',
         text: 'The analysis engine is Google Gemini. To use it, you need an access key:',
         list: [
           'Go to Google AI Studio.',
           'Log in with your Google account.',
-          'Click the blue "Get API key" or "Create API key" button.',
+          'Click the blue "Get API key" button.',
           'Copy the generated code and paste it into the "API Key" field here.'
         ]
       },
@@ -125,9 +161,20 @@ export const translations = {
         text: 'Define what you want to compare (e.g., "Price", "Battery", "Camera").',
         list: [
           'Define Weight (1 to 10): Next to each attribute, set its importance.',
-          'How Scoring Works: The AI gives a score from 0 to 100 based strictly on these weights. If "Price" has weight 10, a cheap product will score significantly higher than an expensive one.'
+          'Smart Score: The AI calculates a score (0-100) based strictly on these weights. If "Price" has weight 10, the cheapest product gets full spotlight.'
         ]
       }
+    },
+    passwordModal: {
+      titleSave: 'Save API Key',
+      titleLoad: 'Load API Key',
+      instruction: 'This password will encrypt your API Key. We do not store it.',
+      placeholder: 'Enter your secure password',
+      errorEmpty: 'Password cannot be empty',
+      errorGeneric: 'Error processing password',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
+      processing: 'Processing...'
     },
     configTitle: 'AI Connection',
     aiProvider: 'AI Provider',
@@ -155,6 +202,19 @@ export const translations = {
     dashEfficiencyDesc: 'Avg savings vs. most expensive option.',
     dashProductsAnalyzed: 'Products Analyzed',
     dashSystemNotice: 'System Notice',
-    dashNoticeText: 'Since we access sites in real-time, occasional blocks may occur. For your safety, all AI-generated content is clearly flagged.'
+    dashNoticeText: 'Since we access sites in real-time, occasional blocks may occur. For your safety, all AI-generated content is clearly flagged.',
+    invalidUrl: 'Invalid URL. Include http:// or https://',
+    urlExists: 'This URL is already in the list.',
+    pasteLink: 'Paste the product link here...',
+    productList: 'Product List',
+    noUrlsAdded: 'No URLs added',
+    attrPlaceholder: 'Ex: Price, Camera, Design...',
+    definedCriteria: 'Defined Criteria',
+    weight: 'WEIGHT',
+    weightTooltip: 'Weight 1 to 10',
+    noAttributesDefined: 'No attributes defined',
+    backToDashboard: 'Back to Dashboard',
+    guideBtn: 'Guide',
+    logoAlt: 'Altus Logo',
   }
 };

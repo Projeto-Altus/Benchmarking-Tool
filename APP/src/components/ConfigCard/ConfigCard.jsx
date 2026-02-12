@@ -1,5 +1,4 @@
 import React from 'react';
-// Adicionei 'Settings' na importação
 import { Eye, EyeOff, Save, Download, Cpu, KeyRound, ShieldCheck, Settings } from 'lucide-react';
 import './ConfigCard.css';
 
@@ -10,7 +9,6 @@ const ConfigCard = ({
 }) => {
   return (
     <section className="card config-card">
-      {/* Header com Ícone e Estilo Unificado */}
       <div className="config-header">
         <h3 className="config-title">
           <Settings size={18} /> {t.configTitle}

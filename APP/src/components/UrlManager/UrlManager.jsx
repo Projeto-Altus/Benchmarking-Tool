@@ -16,11 +16,11 @@ const UrlManager = ({ urls, setUrls, loading, t }) => {
     if (!trimmedInput) return;
 
     if (!isValidUrl(trimmedInput)) {
-      setError('URL inválida. Inclua http:// ou https://');
+      setError(t.invalidUrl); 
       return;
     }
     if (urls.includes(trimmedInput)) {
-      setError('Esta URL já está na lista.');
+      setError(t.urlExists); 
       return;
     }
 
@@ -50,7 +50,7 @@ const UrlManager = ({ urls, setUrls, loading, t }) => {
           value={input} 
           onChange={handleInputChange} 
           disabled={loading} 
-          placeholder="Cole o link do produto aqui..."
+          placeholder={t.pasteLink} 
           onKeyDown={(e) => e.key === 'Enter' && addUrl()}
         />
         <button className="btn-add" onClick={addUrl} disabled={loading || !input.trim()}>
@@ -64,10 +64,9 @@ const UrlManager = ({ urls, setUrls, loading, t }) => {
         </div>
       )}
 
-      {/* Header Fixo da Lista */}
       <div className="list-header-row">
         <div className="header-title">
-          <span>Lista de Produtos</span>
+          <span>{t.productList}</span> 
           {urls.length > 0 && <span className="count-badge">{urls.length}</span>}
         </div>
         {urls.length > 0 && (
@@ -77,7 +76,6 @@ const UrlManager = ({ urls, setUrls, loading, t }) => {
         )}
       </div>
 
-      {/* Lista ou Placeholder */}
       {urls.length > 0 ? (
         <ul className="manager-list">
           {urls.map((u, i) => (
@@ -92,7 +90,7 @@ const UrlManager = ({ urls, setUrls, loading, t }) => {
       ) : (
         <div className="empty-list-placeholder">
           <Link2Off size={24} />
-          <span>Nenhuma URL adicionada</span>
+          <span>{t.noUrlsAdded}</span> 
         </div>
       )}
     </div>

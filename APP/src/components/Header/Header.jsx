@@ -11,32 +11,26 @@ const Header = ({
     <header className="nav-container">
       <div className="nav-inner">
         
-        {/* Lado Esquerdo */}
         <div className="nav-left">
-          
-          {/* BOTÃO VOLTAR (Estilo Ícone de Navegação) */}
           {showBack && (
-            <button className="nav-back-icon" onClick={onBack} title="Voltar ao Dashboard">
+            <button className="nav-back-icon" onClick={onBack} title={t.backToDashboard}>
               <ArrowLeft size={24} />
             </button>
           )}
 
           <div className="logo-wrapper">
-            <img src={altusLogo} alt="Altus Logo" className="logo-img" />
+            <img src={altusLogo} alt={t.logoAlt} className="logo-img" />
           </div>
           
-          {/* Divisor visual apenas se não tiver o botão de voltar para não poluir, 
-              ou mantemos sempre se preferir a consistência do logo */}
           <div className="brand-divider" />
           
           <h1 className="app-headline">Benchmarking <span className="highlight">Pro</span></h1>
         </div>
 
-        {/* Lado Direito */}
         <div className="nav-right">
           <button className="nav-action-btn" onClick={onOpenInstructions} title={t.instructions}>
             <BookOpen size={20} />
-            <span className="btn-label">{t.guide?.title ? 'Guia' : 'Guide'}</span>
+            <span className="btn-label">{t.guideBtn}</span>
           </button>
 
           <div className="vertical-divider" />

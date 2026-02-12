@@ -1,58 +1,39 @@
-/**
- * COMPONENTE: MODAL DE SENHA
- * =========================
- * 
- * Modal reutilizável para solicitar senha ao usuário
- * Usado para:
- * - Salvar API Key (criptografar)
- * - Carregar API Key (descriptografar)
- * 
- * Características de segurança:
- * - Senha nunca é exibida em texto
- * - Senha é passada apenas ao callback, nunca armazenada no estado
- * - Modal se fecha e limpa ao cancelar
- * - Tratamento de erros silencioso (sem revelar detalhes)
- */
-
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Eye, EyeOff, Lock, X, CheckCircle } from 'lucide-react';
 import './PasswordModal.css';
 
-export default function PasswordModal({ isOpen, onConfirm, onCancel, title, loading }) {
+export default function PasswordModal({ isOpen, onConfirm, onCancel, mode, loading, t }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const title = mode === 'save' ? t.passwordModal.titleSave : t.passwordModal.titleLoad;
+
   const handleConfirm = async () => {
     if (!password.trim()) {
-      setError('Senha não pode estar vazia');
+      setError(t.passwordModal.errorEmpty);
       return;
     }
 
     try {
       setError('');
-      // Passar a senha para o callback (não armazena)
       await onConfirm(password);
-      // Limpar após sucesso
       setPassword('');
     } catch (err) {
-      // Erro genérico - nunca revelar detalhes técnicos
-      setError('Operação falhou');
+      setError(t.passwordModal.errorGeneric);
     }
   };
 
   const handleCancel = () => {
-    // Limpar ao cancelar
     setPassword('');
     setError('');
     onCancel();
   };
 
-  const handleKeyPress = (e) => {
-    // Enter para confirmar
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !loading) {
       handleConfirm();
     }
-    // Escape para cancelar
     if (e.key === 'Escape') {
       handleCancel();
     }
@@ -61,48 +42,69 @@ export default function PasswordModal({ isOpen, onConfirm, onCancel, title, load
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">{title}</h2>
-
-        <div className="modal-password-wrapper">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            className="modal-password-input"
-            placeholder="Digite sua senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyPress={handleKeyPress}
-            disabled={loading}
-            autoFocus
-          />
-          <button
-            className="btn-toggle-modal-password"
-            onClick={() => setShowPassword(!showPassword)}
-            disabled={loading}
-            type="button"
-            title={showPassword ? 'Ocultar' : 'Mostrar'}
-          >
-            {showPassword ? '◉' : '○'}
+    <div className="pwd-modal-overlay" onClick={handleCancel}>
+      <div className="pwd-modal-content" onClick={(e) => e.stopPropagation()}>
+        
+        <div className="pwd-modal-header">
+          <div className="pwd-header-title">
+            <Lock size={18} className="pwd-icon" />
+            <h3>{title}</h3>
+          </div>
+          <button className="pwd-close-btn" onClick={handleCancel}>
+            <X size={18} />
           </button>
         </div>
 
-        {error && <p className="modal-error">{error}</p>}
+        <div className="pwd-modal-body">
+          <p className="pwd-instruction">{t.passwordModal.instruction}</p>
+          
+          <div className={`pwd-input-wrapper ${error ? 'has-error' : ''}`}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              className="pwd-input"
+              placeholder={t.passwordModal.placeholder}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if(error) setError('');
+              }}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              autoFocus
+            />
+            <button
+              className="btn-toggle-visibility"
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={loading}
+              type="button"
+              tabIndex="-1"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
 
-        <div className="modal-buttons">
+          {error && <div className="pwd-error-msg">{error}</div>}
+        </div>
+
+        <div className="pwd-modal-footer">
           <button
-            className="btn-cancel"
+            className="btn-pwd-cancel"
             onClick={handleCancel}
             disabled={loading}
           >
-            Cancelar
+            {t.passwordModal.cancel}
           </button>
           <button
-            className="btn-confirm"
+            className="btn-pwd-confirm"
             onClick={handleConfirm}
             disabled={loading}
           >
-            {loading ? 'Processando...' : 'Confirmar'}
+            {loading ? t.passwordModal.processing : (
+              <>
+                <CheckCircle size={16} />
+                {t.passwordModal.confirm}
+              </>
+            )}
           </button>
         </div>
       </div>
