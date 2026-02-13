@@ -12,6 +12,8 @@ import ReportView from './components/ReportView/ReportView';
 import Dashboard from './components/Dashboard/Dashboard';
 import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen';
 
+import notificationSound from './assets/sfx/notification.mp3';
+
 import { RotateCcw } from 'lucide-react';
 import { translations } from './constants/translations';
 import { useBenchmarking } from './hooks/useBenchmarking';
@@ -97,7 +99,7 @@ function App() {
     if (!loading && displayResults.length > 0) {
       notifyUser(t);
       if (soundEnabled) {
-        new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3').play().catch(() => {});
+        new Audio(notificationSound).play().catch(() => {});
       }
       
       const originalTitle = document.title;
@@ -143,10 +145,12 @@ function App() {
   };
 
   const handleHeaderNotifyClick = () => {
-    if (notificationStatus === 'default') {
-      setShowNotifyModal(true);
+    if (notificationStatus === 'granted') {
+      alert(t.notificationsRevoke);
+    } else if (notificationStatus === 'denied') {
+      alert(t.notificationsBlocked);
     } else {
-      handleRequestPermission();
+      setShowNotifyModal(true);
     }
   };
 
@@ -292,7 +296,6 @@ function App() {
                 onSaveKey={handleSaveApiKey}
                 onLoadKey={handleLoadApiKey}
               />
-              
               {displayResults.length > 0 && !loading && (
                 <button className="btn-sidebar-reset" onClick={handleNewAnalysis}>
                   <RotateCcw size={16} /> 
