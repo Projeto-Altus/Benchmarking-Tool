@@ -44,13 +44,7 @@ jobs:
       run: python -m playwright install chromium
 
     - name: Build with PyInstaller
-      # Mudamos aqui para um comando direto que empacota TUDO
-      run: |
-        python -m PyInstaller --noconfirm --onefile --windowed `
-        --name "Altus Benchmarking Pro" `
-        --collect-all playwright `
-        --add-data "API;API" `
-        main.py
+      run: python -m PyInstaller AltusApp.spec
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
