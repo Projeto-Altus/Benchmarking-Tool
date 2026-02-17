@@ -1,8 +1,5 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-
-from routes.scrape_routes import scrape_bp
-
 from routes.scrape_routes import scrape_bp
 from routes.export_routes import export_bp
 

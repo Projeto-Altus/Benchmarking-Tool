@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from flask import Blueprint, request, jsonify
 from pydantic import ValidationError
 from dtos.scraping_dto import ScrapeRequest
@@ -41,12 +42,16 @@ def compare_products():
                 "details": errors
             }), 400
 
+        print(f"\n[DEBUG] Iniciando scraping de {len(valid_urls)} URLs...")
+        
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
             results = loop.run_until_complete(ScraperService.scrape_batch(valid_urls))
         finally:
             loop.close()
+
+        print(f"[DEBUG] Resultados do Scraper: {results}")
 
         scraped_results = {url: res for url, res in zip(valid_urls, results)}
 
@@ -71,6 +76,5 @@ def compare_products():
     except ValidationError as e:
         return jsonify({"error": "Erro de validação de dados", "details": e.errors()}), 422
     except Exception as e:
-        import traceback
         print(traceback.format_exc()) 
         return jsonify({"error": "Erro interno do servidor", "details": str(e)}), 500
