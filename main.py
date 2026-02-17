@@ -5,7 +5,7 @@ import threading
 import asyncio
 
 if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
