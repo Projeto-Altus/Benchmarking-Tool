@@ -1,15 +1,11 @@
-/* ResultsDisplay.css */
-
-/* O card principal (aside) já herda .card do App.css, aqui ajustamos o interno */
 .right-card {
-  padding: 0 !important; /* Remove padding padrão para controlar header/body */
+  padding: 0 !important;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
 }
 
-/* --- Header Padrão Altus --- */
 .results-header {
   padding: 16px 20px;
   display: flex;
@@ -17,7 +13,7 @@
   align-items: center;
   border-bottom: 2px solid rgba(59, 139, 214, 0.1);
   background: linear-gradient(to right, rgba(59, 139, 214, 0.05), transparent);
-  min-height: 60px; /* Garante altura alinhada com outros cards */
+  min-height: 60px;
 }
 
 .results-title-header {
@@ -32,18 +28,15 @@
   gap: 8px;
 }
 
-/* --- Corpo do Card --- */
 .results-body-content {
   flex: 1;
   padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Centraliza conteúdo vazio/loading */
+  justify-content: center;
   overflow-y: auto;
 }
-
-/* --- Estados (Empty, Loading, Error) --- */
 
 .no-data-state {
   display: flex;
@@ -52,13 +45,55 @@
   justify-content: center;
   text-align: center;
   color: var(--card-text);
-  opacity: 0.4;
-  gap: 12px;
+  gap: 24px;
 }
 
 .no-data-text {
   font-size: 14px;
   font-weight: 500;
+  opacity: 0.4;
+}
+
+.btn-generate-main {
+  background: var(--btn-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 28px;
+  font-family: 'Kokoro', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(59, 139, 214, 0.2);
+}
+
+.btn-generate-main:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(59, 139, 214, 0.3);
+}
+
+.btn-generate-main:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-generate-main:disabled {
+  background: var(--input-bg);
+  color: var(--card-text);
+  border: 1px solid var(--input-border);
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-generate-main svg {
+  flex-shrink: 0;
 }
 
 .loading-state {
@@ -84,9 +119,6 @@
   animation: pulse 1.5s infinite;
 }
 
-@keyframes spin { 100% { transform: rotate(360deg); } }
-@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
-
 .error-state {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
@@ -104,7 +136,6 @@
   line-height: 1.4;
 }
 
-/* --- Estado de Sucesso (Análise Pronta) --- */
 .success-view {
   display: flex;
   flex-direction: column;
@@ -186,12 +217,10 @@
   background: rgba(59, 139, 214, 0.05);
 }
 
-/* --- Modal de Resultados --- */
-/* Mantive a estrutura do modal mas modernizei as cores */
 .results-modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(10, 25, 47, 0.85); /* Fundo Altus Escuro */
+  background: rgba(10, 25, 47, 0.85);
   backdrop-filter: blur(8px);
   z-index: 2000;
   display: flex;
@@ -243,6 +272,7 @@
   opacity: 0.5;
   transition: opacity 0.2s;
 }
+
 .close-btn:hover { opacity: 1; }
 
 .rm-body {
@@ -258,6 +288,8 @@
   gap: 24px;
 }
 
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Trophy, Sparkles } from 'lucide-react';
 import './ResultCard.css';
 
-const ResultCard = ({ product, attributes, isWinner }) => {
+const ResultCard = ({ product, attributes, isWinner, t }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const escapeHtml = (text) => text ? String(text).replace(/[&<>"']/g, m => ({ 
@@ -10,7 +10,7 @@ const ResultCard = ({ product, attributes, isWinner }) => {
   })[m]) : '';
   
   const formatValue = (val) => {
-    const text = String(val || 'Não especificado');
+    const text = String(val || t.resultCard.notSpecified);
     const isEstimated = text.toLowerCase().includes('(est.)');
     const cleanText = text.replace(/\(est\.\)/gi, '').trim();
     return { cleanText, isEstimated };
@@ -23,21 +23,21 @@ const ResultCard = ({ product, attributes, isWinner }) => {
 
   return (
     <div className={`premium-product-card ${isTotalFallback ? 'is-total-fallback' : ''} ${isWinner ? 'is-winner-card' : ''}`}>
-      
       <div className="card-inner-content">
         
-        {/* --- ÁREA DE PATCHES (Fica dentro do padding, sem quebrar) --- */}
         {(isWinner || isTotalFallback) && (
           <div className="card-patches-wrapper">
             {isWinner && (
               <div className="winner-patch-geometric">
-                <Trophy size={12} strokeWidth={3} className="sparkle-mini" /> MELHOR ESCOLHA
+                <Trophy size={12} strokeWidth={3} className="sparkle-mini" /> 
+                {t.resultCard.bestChoice}
               </div>
             )}
             
             {isTotalFallback && (
               <div className="ai-fallback-patch">
-                <Sparkles size={12} strokeWidth={3} className="sparkle-mini" /> DADOS ESTIMADOS POR IA
+                <Sparkles size={12} strokeWidth={3} className="sparkle-mini" /> 
+                {t.resultCard.aiEstimatedData}
               </div>
             )}
           </div>
@@ -45,7 +45,7 @@ const ResultCard = ({ product, attributes, isWinner }) => {
 
         <div className="card-header-row">
           <div className="product-info-group">
-            <h4 className="product-name-text">{escapeHtml(product.nome_produto || 'Produto Sem Nome')}</h4>
+            <h4 className="product-name-text">{escapeHtml(product.nome_produto || t.resultCard.unnamedProduct)}</h4>
             <a href={product.url_origem} target="_blank" rel="noopener noreferrer" className="product-url-link">
               {escapeHtml(product.url_origem).substring(0, 35)}... 🔗
             </a>
@@ -60,14 +60,14 @@ const ResultCard = ({ product, attributes, isWinner }) => {
             <div className={`ai-summary-text ${isExpanded ? 'is-open' : 'is-clamped'}`}>
               <div className="ai-badge-inline">
                 <Sparkles className="ai-sparkle-icon" />
-                <span className="ai-label-blue">IA:</span>
+                <span className="ai-label-blue">{t.resultCard.aiLabel}:</span>
               </div>
               {reason}
             </div>
             {isLongText && (
               <div className="expand-trigger-container">
                 <span className="expand-link-text" onClick={() => setIsExpanded(!isExpanded)}>
-                  {isExpanded ? 'Ocultar resumo ↑' : 'Ler resumo completo ↓'}
+                  {isExpanded ? t.resultCard.hideSummary : t.resultCard.showSummary}
                 </span>
               </div>
             )}
@@ -83,7 +83,7 @@ const ResultCard = ({ product, attributes, isWinner }) => {
                 <span className={`spec-value-text ${isEstimated ? 'text-orange-bold' : ''}`}>
                   {cleanText} 
                   {isEstimated && (
-                    <span className="info-icon-tag" title="Informação estimada pela IA">i</span>
+                    <span className="info-icon-tag" title={t.resultCard.aiEstimatedInfo}>i</span>
                   )}
                 </span>
               </div>

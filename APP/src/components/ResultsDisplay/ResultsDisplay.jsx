@@ -6,13 +6,15 @@ import {
   Download, 
   BarChart2, 
   Search, 
-  FileText 
+  FileText,
+  Play 
 } from 'lucide-react';
 import ResultCard from '../ResultsCard/ResultCard'; 
 import './ResultsDisplay.css';
 
 const ResultsDisplay = ({ 
-  results, loading, statusMessage, error, downloadLink, t, attributes, onGenerateReport 
+  results, loading, statusMessage, error, downloadLink, t, attributes, onGenerateReport,
+  onGenerate, isDataValid 
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -45,7 +47,14 @@ const ResultsDisplay = ({
       return (
         <div className="no-data-state">
           <Search size={48} strokeWidth={1} />
-          <p className="no-data-text">{t.noResultsYet}</p>
+          <button 
+            className="btn-generate-main" 
+            onClick={onGenerate} 
+            disabled={!isDataValid || loading}
+          >
+            <Play size={16} fill="currentColor" />
+            {t.generate}
+          </button>
         </div>
       );
     }
@@ -66,7 +75,7 @@ const ResultsDisplay = ({
           
           <button className="btn-result-action btn-download" onClick={onGenerateReport}>
             <FileText size={18} />
-            Gerar Relatório Executivo
+            {t.generateExecutiveReport}
           </button>
 
           {downloadLink && (
@@ -78,7 +87,7 @@ const ResultsDisplay = ({
               style={{marginTop: '8px'}} 
             >
               <Download size={18} />
-              Baixar CSV / Excel
+              {t.downloadData}
             </a>
           )}
         </div>
@@ -119,6 +128,7 @@ const ResultsDisplay = ({
                     product={r} 
                     attributes={attributes} 
                     isWinner={i === 0}
+                    t={t}
                   />
                 ))}
               </div>

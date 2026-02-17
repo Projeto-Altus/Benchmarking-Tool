@@ -44,7 +44,7 @@ const AttributeManager = ({ attributes, setAttributes, loading, t }) => {
           value={input} 
           onChange={e => setInput(e.target.value)} 
           disabled={loading} 
-          placeholder="Ex: Preço, Câmera, Design..."
+          placeholder={t.attrPlaceholder}
           onKeyDown={(e) => e.key === 'Enter' && addAttr()}
         />
         <button className="btn-add" onClick={addAttr} disabled={loading || !input.trim()}>
@@ -54,7 +54,7 @@ const AttributeManager = ({ attributes, setAttributes, loading, t }) => {
 
       <div className="list-header-row">
         <div className="header-title">
-          <span>Critérios Definidos</span>
+          <span>{t.definedCriteria}</span>
           {attributes.length > 0 && <span className="count-badge">{attributes.length}</span>}
         </div>
         
@@ -71,8 +71,8 @@ const AttributeManager = ({ attributes, setAttributes, loading, t }) => {
             <li className="attr-item-card" key={i}>
               <span className="attr-text-content" title={a.name}>{a.name}</span>
               
-              <div className="weight-control" title="Peso de 1 a 10">
-                <span className="weight-label">PESO</span>
+              <div className="weight-control" title={t.weightTooltip}>
+                <span className="weight-label">{t.weight}</span>
                 <input 
                   type="number" 
                   min="1" max="10" 
@@ -93,7 +93,7 @@ const AttributeManager = ({ attributes, setAttributes, loading, t }) => {
       ) : (
         <div className="empty-list-placeholder">
           <Scale size={24} />
-          <span>Nenhum atributo definido</span>
+          <span>{t.noAttributesDefined}</span>
         </div>
       )}
     </div>
