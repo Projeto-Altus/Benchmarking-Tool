@@ -42,17 +42,12 @@ def compare_products():
                 "details": errors
             }), 400
 
-        print(f"\n[DEBUG] Iniciando scraping de {len(valid_urls)} URLs...")
-        
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
             results = loop.run_until_complete(ScraperService.scrape_batch(valid_urls))
         finally:
             loop.close()
-
-        print(f"[DEBUG] Resultados do Scraper: {results}")
-
         scraped_results = {url: res for url, res in zip(valid_urls, results)}
 
         prompt = AIService.build_prompt(scraped_results, req.attributes)
