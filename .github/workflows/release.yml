@@ -15,11 +15,25 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Enable Symlinks
+      run: |
+        git config --global core.symlinks true
+        fsutil behavior set SymlinkEvaluation L2L:1 R2R:1 L2R:1 R2L:1
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
 
     - name: Build React App
       run: |
@@ -29,26 +43,34 @@ jobs:
       env:
         CI: false
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyinstaller eel flask flask-cors playwright pydantic validators openai
+        pip install pyinstaller
 
     - name: Install Playwright Browsers
       run: python -m playwright install chromium
 
-    - name: Build with PyInstaller
-      run: python -m PyInstaller AltusApp.spec
+    - name: Build Python Sidecar EXE
+      run: |
+        # Gera o api_backend.exe para ser usado pelo Electron
+        python -m PyInstaller --onefile --noconsole --name api_backend main_backend.py
+        mkdir -p resources/backend
+        cp dist/api_backend.exe resources/backend/api_backend.exe
+
+    - name: Install Electron dependencies
+      run: npm install
+
+    - name: Build Electron Installer
+      run: npm run build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: dist/Altus Benchmarking Pro.exe
+        files: dist_electron/*.exe 
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

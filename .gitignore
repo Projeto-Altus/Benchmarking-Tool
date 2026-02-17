@@ -1,10 +1,30 @@
 build/
 dist/
+dist_electron/
+out/
 
-__pycache__/
-*.pyc
+venv_teste/
 venv/
+ENV/
 .env
 
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 APP/dist/
+
+resources/backend/*.exe
+
+.vscode/
+.idea/
+*.swp
+*.bak
+Thumbs.db
+.DS_Store

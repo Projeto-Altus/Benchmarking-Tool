@@ -3,11 +3,11 @@ import sys
 import traceback
 from flask import Blueprint, request, jsonify
 from pydantic import ValidationError
-from dtos.scraping_dto import ScrapeRequest
-from services.scraper_service import ScraperService
-from services.ai_service import AIService
-from services.export_service import ExportService
-from core.exceptions import InvalidAPIKeyError, InvalidURLError
+from ..dtos.scraping_dto import ScrapeRequest
+from ..services.scraper_service import ScraperService
+from ..services.ai_service import AIService
+from ..services.export_service import ExportService
+from ..core.exceptions import InvalidAPIKeyError, InvalidURLError
 
 scrape_bp = Blueprint('scrape', __name__)
 

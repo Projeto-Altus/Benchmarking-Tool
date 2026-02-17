@@ -1,0 +1,41 @@
+{
+  "name": "altus-benchmarking-pro",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.altus.benchmarking",
+    "productName": "Altus Benchmarking Pro",
+    "directories": {
+      "output": "dist_electron",
+      "app": "."
+    },
+    "files": [
+      "index.js",
+      "APP/dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/app.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Altus Benchmarking Pro"
+    },
+    "extraResources": [
+      {
+        "from": "resources/backend/api_backend.exe",
+        "to": "backend/api_backend.exe"
+      },
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ]
+  }
+}
