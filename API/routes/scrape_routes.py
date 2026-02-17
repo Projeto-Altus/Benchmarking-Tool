@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import traceback
 from flask import Blueprint, request, jsonify
 from pydantic import ValidationError
@@ -42,12 +43,15 @@ def compare_products():
                 "details": errors
             }), 400
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
         try:
-            results = loop.run_until_complete(ScraperService.scrape_batch(valid_urls))
-        finally:
-            loop.close()
+            results = asyncio.run(ScraperService.scrape_batch(valid_urls))
+        except Exception as e:
+            print(f"Erro durante o processamento do scraping: {e}")
+            results = [None] * len(valid_urls)
+
         scraped_results = {url: res for url, res in zip(valid_urls, results)}
 
         prompt = AIService.build_prompt(scraped_results, req.attributes)
