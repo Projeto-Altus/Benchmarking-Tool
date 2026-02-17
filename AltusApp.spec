@@ -1,5 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
+import playwright
 from PyInstaller.utils.hooks import collect_all
+
+playwright_dir = os.path.dirname(playwright.__file__)
+ms_playwright_path = os.path.join(os.environ.get('USERPROFILE', os.environ.get('HOME', '')), 'AppData', 'Local', 'ms-playwright')
 
 libs_to_force = [
     'flask', 'flask_cors', 'eel', 'playwright', 
@@ -7,7 +12,11 @@ libs_to_force = [
     'jinja2', 'werkzeug', 'itsdangerous', 'click'
 ]
 
-datas = [('APP/dist', 'APP/dist'), ('API', 'API')]
+datas = [
+    ('APP/dist', 'APP/dist'), 
+    ('API', 'API'),
+    (ms_playwright_path, 'playwright/driver/package/.local-browsers')
+]
 binaries = []
 hiddenimports = ['API.app', 'API.routes', 'API.services']
 
