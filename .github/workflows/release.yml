@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -23,6 +24,8 @@ jobs:
         cd APP
         npm install
         npm run build
+      env:
+        CI: false
 
     - name: Setup Python
       uses: actions/setup-python@v5
