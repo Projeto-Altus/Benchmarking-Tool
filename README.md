@@ -1,81 +1,75 @@
-#  Altus Benchmarking Pro:
+# <img src="assets/app.ico" width="32" height="32"> Altus Benchmarking Pro
 
-### Parceria : Altus 
-Este ecossistema representa uma solução de ponta para a automação de inteligência de mercado. O sistema combina **Agentes de Web Scraping** e **Modelos de Linguagem de Grande Escala (LLM)** para eliminar o trabalho manual de coleta de especificações técnicas, permitindo uma tomada de decisão baseada em dados reais e critérios ponderados.
+**A solução definitiva para automação de inteligência de mercado e comparação técnica de produtos.**
+
+O **Altus Benchmarking Pro** representa uma solução de ponta para a automação de inteligência de mercado. O sistema combina **Agentes de Web Scraping** e **Modelos de Linguagem de Grande Escala (LLM)** para eliminar o trabalho manual de coleta de especificações técnicas, permitindo uma tomada de decisão baseada em dados reais e critérios ponderados.
 
 ---
 
-## 1. Arquitetura da Solução
+## 📥 Como Baixar e Usar (Guia do Usuário Final)
+
+Para utilizar a ferramenta no seu computador Windows, siga estes passos simples:
+
+1.  **Acesse as Versões Oficiais**: No menu lateral direito deste repositório, clique na seção [**Releases**](https://github.com/Projeto-Altus/Benchmarking-Tool/releases).
+2.  **Escolha a Versão**: Localize a versão mais recente (ex: `v1.0.1`).
+3.  **Baixe o Instalador**: Dentro da aba **Assets**, clique no arquivo executável, geralmente nomeado como `Altus.Benchmarking.Pro.Setup.1.0.1.exe`.
+4.  **Instalação**: Execute o arquivo baixado e siga as instruções na tela. O aplicativo será instalado e um atalho será criado na sua Área de Trabalho.
+5.  **Uso Inicial**: 
+    * Abra o App e insira sua **Chave de API** (OpenAI, Gemini ou DeepSeek) nas configurações. Suas chaves são criptografadas localmente para sua segurança.
+    * Cole as URLs dos produtos que deseja comparar e defina os pesos para cada atributo.
+    * Clique em **Analisar** e acompanhe o log de processamento em tempo real.
+
+---
+
+## 🛠️ Arquitetura da Solução (Informações Técnicas)
+
 A solução foi desenhada seguindo princípios de separação de responsabilidades (SoC) e processamento assíncrono para garantir escalabilidade.
 
-* **APP (Frontend Orquestrador)**: Interface reativa desenvolvida em **React 19** e **Vite**. Atua como o orquestrador de estado, gerenciando desde a configuração de critérios de peso até a visualização de gráficos comparativos e geração de relatórios executivos.
-* **API (Motor de Extração & Inteligência)**: Microserviço em **Python (Flask)** especializado em tarefas de alta latência. Gerencia o pool de navegadores **Playwright** para scraping e a lógica de orquestração de prompts para os motores de IA.
+### 1. Componentes do Ecossistema
+* **APP (Interface Orquestradora)**: Desenvolvida em **React 19** e **Vite**, encapsulada pelo **Electron**. Atua como o orquestrador de estado, gerenciando desde a configuração de critérios até a geração de relatórios.
+* **API (Motor de Inteligência)**: Microserviço em **Python (Flask)** especializado em tarefas de alta latência. Gerencia o pool de navegadores **Playwright** e a lógica de orquestração de prompts.
+* **Navegador Embutido**: O sistema utiliza uma instância dedicada do Chromium (aprox. 900MB) armazenada na pasta de recursos para garantir que o scraping funcione independente do navegador instalado no PC do usuário.
 
----
-
-## 2. Stack Tecnológica Corporativa
-
-| Componente | Tecnologia | Papel no Ecossistema |
+### 2. Stack Tecnológica Corporativa
+| Componente | Tecnologia | Papel |
 | :--- | :--- | :--- |
-| **Interface** | React 19 / Vite | Renderização de alta performance e SPA. |
-| **Estilização** | CSS Modules | Design system proprietário focado em produtividade. |
-| **Backend** | Flask | Orquestração de rotas e integração de microserviços. |
-| **Scraping** | Playwright (Async) | Extração de conteúdo de SPAs e sites dinâmicos. |
+| **Shell Desktop** | Electron 34 | Distribuição nativa Windows. |
+| **Interface** | React 19 / Vite | Renderização de alta performance. |
+| **Backend** | Flask | Orquestração de rotas e microserviços. |
+| **Scraping** | Playwright (Async) | Extração de conteúdo de sites dinâmicos. |
 | **IA** | Gemini / GPT / DeepSeek | Processamento de linguagem natural e scoring técnico. |
 
----
+### 3. Segurança e Privacidade
+* **Criptografia At-Rest**: As chaves de API são criptografadas via **Web Crypto API** (AES-GCM 256-bit) com chaves derivadas via **PBKDF2**.
+* **Proxy de Segurança**: A API atua como um proxy, permitindo o acesso a dados de múltiplos domínios sem as restrições de CORS que bloqueiam o scraping direto no navegador.
 
-## 3. Segurança e Privacidade de Dados
-Como uma ferramenta corporativa, a proteção de credenciais é uma prioridade central:
-
-* **Criptografia At-Rest**: As chaves de API dos provedores de IA são criptografadas antes de serem salvas no navegador. Utilizamos a **Web Crypto API** (AES-GCM 256-bit) com chaves derivadas por senha via **PBKDF2**.
-* **Decodificação Just-in-Time**: A chave é descriptografada em memória apenas no momento da requisição para a API de análise. Ela nunca é persistida de forma vulnerável no `localStorage`.
-* **Bypass de CORS**: A API atua como um proxy seguro, permitindo que o frontend acesse dados de múltiplos domínios sem as restrições de segurança de navegador que bloqueiam o scraping direto.
-
----
-
-## 4. O Algoritmo de Inteligência (Scoring)
-A análise técnica utiliza uma lógica de **Ponderação Técnica Pura**:
-
-* **Importância Relativa**: Cada atributo (Preço, Desempenho, etc.) recebe um peso de 1 a 10 definido pelo usuário.
-* **Reliability Penalty**: Se a extração de dados for parcial ou estimada pela IA (marcada como `medium` ou `low`), o sistema aplica penalidades automáticas (10% a 30%) na pontuação final para garantir a integridade do benchmark.
-* **Auditoria de IA**: Todas as informações estimadas são marcadas visualmente com a tag `(est.)`, permitindo que o analista humano valide a integridade do dado.
+### 4. O Algoritmo de Scoring (Ponderação Técnica)
+* **Importância Relativa**: Atributos recebem pesos de 1 a 10 definidos pelo usuário.
+* **Reliability Penalty**: Se a extração for parcial ou marcada como baixa confiabilidade pela IA, aplicam-se penalidades automáticas (10% a 30%) na pontuação final.
+* **Auditoria**: Informações estimadas são marcadas visualmente com a tag `(est.)`.
 
 ---
 
-## 5. Estrutura do Monorepo
+## 📂 Estrutura do Monorepo
+
 ```text
 .
 ├── API/              # Backend Python (Lógica de Negócio e IA)
 │   ├── routes/       # Endpoints REST
-│   ├── services/     # Motor de Scrapping e Integração LLM
-│   └── requirements.txt
-├── APP/              # Frontend React (Dashboard e UI)
-│   ├── src/          # Componentes, Hooks e Utilitários
-│   └── package.json  
-└── README.md         # Documentação Master
+│   └── services/     # Motor de Scrapping e Integração LLM
+├── APP/              # Frontend React & Electron
+│   ├── resources/    # Binários da API e Playwright Browsers
+│   └── src/          # Componentes da Interface
+└── assets/           # Identidade visual do projeto
 ```
 
 ---
 
-## 6. Guia de Início Rápido
-
-### **Pré-requisitos**
-* Python 3.12+
-* Node.js 18+
-* Playwright Browsers (`playwright install chromium`)
-
-### **Execução Local**
-1.  **Backend**:
-    ```bash
-    cd API && pip install -r requirements.txt
-    python app.py
-    ```
-2.  **Frontend**:
-    ```bash
-    cd APP && npm install
-    npm run dev
-    ```
-
----
 *Documentação gerada para o projeto Altus Benchmarking Pro.*
+
+**Desenvolvido por:<br>**
+*Alice Silveira da Rocha Eibel<br>*
+*Arthur Rafael da Costa Palma<br>*
+*Isadora Luiza Kampff<br>*
+*Ivan Santos Vieira Junior<br>*
+*Maiara Adriana Oliveira*
