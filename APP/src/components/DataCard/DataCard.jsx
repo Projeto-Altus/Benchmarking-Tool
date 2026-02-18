@@ -18,11 +18,11 @@ const DataCard = ({
           </h3>
           <div className="data-actions">
             <button className="action-icon-btn" onClick={onImport} disabled={loading}>
-              <Upload size={14} /> {t.import}
+              <Download size={14} /> {t.import}
             </button>
             <div className="divider-vertical"></div>
             <button className="action-icon-btn" onClick={onExport} disabled={loading}>
-              <Download size={14} /> {t.export}
+              <Upload size={14} /> {t.export}
             </button>
           </div>
         </div>

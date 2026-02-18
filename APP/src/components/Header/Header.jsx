@@ -6,12 +6,7 @@ import {
   Moon, 
   ArrowLeft, 
   Bell, 
-  BellOff,
-  Download,
-  Upload,
-  Minus,
-  Square,
-  X
+  BellOff
 } from 'lucide-react';
 import './Header.css';
 import altusLogo from '../../assets/logo/altusLogo.png';
@@ -19,8 +14,7 @@ import altusLogo from '../../assets/logo/altusLogo.png';
 const Header = ({ 
   t, lang, theme, toggleLang, toggleTheme, onOpenInstructions,
   showBack, onBack, 
-  notificationStatus, onRequestNotification,
-  onCloseApp, onMinimizeApp, onMaximizeApp
+  notificationStatus, onRequestNotification
 }) => {
   return (
     <header className="nav-container title-bar-draggable">

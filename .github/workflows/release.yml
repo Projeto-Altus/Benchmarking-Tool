@@ -29,6 +29,13 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
+    - name: Sync version with Git Tag
+      shell: pwsh
+      run: |
+        $VERSION = "${{ github.ref_name }}".Replace("v", "")
+        Write-Host ">>> Atualizando package.json para a versão: $VERSION"
+        npm version $VERSION --no-git-tag-version    
+
     - name: Setup Python
       uses: actions/setup-python@v5
       with:

@@ -12,7 +12,7 @@ import ReportView from './components/ReportView/ReportView';
 import Dashboard from './components/Dashboard/Dashboard';
 import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen';
 
-import { RotateCcw, BellRing } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { translations } from './constants/translations';
 import { useBenchmarking } from './hooks/useBenchmarking';
@@ -20,11 +20,13 @@ import { exportConfig, importConfig } from './utils/fileHandler';
 import { hasStoredApiKey, saveApiKey, loadApiKey } from './utils/cryptoUtils';
 import { saveBenchmarkToHistory } from './utils/historyHandler';
 
-const triggerNativeNotification = async () => {
-  try {
-    await fetch('http://localhost:5000/api/notify', { method: 'POST' });
-  } catch (err) {
-    console.error("Erro ao disparar notificação nativa", err);
+const triggerWebNotification = (t, enabled) => {
+  if (enabled && "Notification" in window && Notification.permission === "granted") {
+    new Notification("Altus Benchmarking Pro", {
+      body: t.analysisReady || "Análise concluída!",
+      icon: './assets/logo/altusLogo.png',
+      silent: false
+    });
   }
 };
  
@@ -37,7 +39,9 @@ function App() {
   const [currentView, setCurrentView] = useState(!localStorage.getItem('altus_username') ? 'welcome' : 'dashboard');
   const [showInstructions, setShowInstructions] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
+  
   const [notificationStatus, setNotificationStatus] = useState("Notification" in window ? Notification.permission : 'denied');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(localStorage.getItem('altus_notifications_enabled') !== 'false');
 
   const [apiKey, setApiKey] = useState('');
   const [provider, setProvider] = useState(localStorage.getItem('provider') || 'google');
@@ -87,8 +91,8 @@ function App() {
 
   useEffect(() => {
     if (!loading && displayResults.length > 0) {
-      if (document.visibilityState !== 'visible' && notificationStatus === 'granted') {
-        triggerNativeNotification();
+      if (document.visibilityState !== 'visible') {
+        triggerWebNotification(t, notificationsEnabled);
       }
       
       const originalTitle = document.title;
@@ -99,7 +103,7 @@ function App() {
       };
       window.addEventListener('focus', resetTitle);
     }
-  }, [loading, displayResults, t, notificationStatus]);
+  }, [loading, displayResults, t, notificationsEnabled]);
 
   useEffect(() => {
     if (hookResults && hookResults.length > 0 && urlList.length > 0 && attrWithImportance.length > 0) {
@@ -138,18 +142,26 @@ function App() {
     if ("Notification" in window) {
       const permission = await Notification.requestPermission();
       setNotificationStatus(permission);
-      if (permission === 'granted') toast.success(t.toasts.notificationsActive);
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        localStorage.setItem('altus_notifications_enabled', 'true');
+        toast.success(t.toasts.notificationsActive);
+      }
       else toast.error(t.toasts.permissionDenied);
     }
   };
 
   const handleHeaderNotifyClick = () => {
-    if (notificationStatus === 'granted') {
-      toast(t.toasts.notificationsRevoke, { icon: 'ℹ️' });
-    } else if (notificationStatus === 'denied') {
+    if (notificationStatus === 'denied') {
       toast.error(t.toasts.notificationsBlocked);
-    } else {
+    } else if (notificationStatus === 'default') {
       setShowNotifyModal(true);
+    } else {
+      const newState = !notificationsEnabled;
+      setNotificationsEnabled(newState);
+      localStorage.setItem('altus_notifications_enabled', newState.toString());
+      if (newState) toast.success(t.toasts.notificationsActive, { icon: '🔔' });
+      else toast(t.toasts.notificationsSilenced || "Notifications silenced", { icon: '🔕' });
     }
   };
 
@@ -297,7 +309,8 @@ function App() {
         onOpenInstructions={() => setShowInstructions(true)}
         showBack={currentView !== 'dashboard'} 
         onBack={handleBackToDashboard} 
-        notificationStatus={notificationStatus}
+        // Alteração: Informa o status de 'desativado' visualmente se o toggle for off
+        notificationStatus={notificationsEnabled ? notificationStatus : 'disabled'}
         onRequestNotification={handleHeaderNotifyClick}
       />
 

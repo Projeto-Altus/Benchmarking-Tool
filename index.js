@@ -2,6 +2,8 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 
+app.setAppUserModelId("com.altus.benchmarking");
+
 let mainWindow;
 let pythonProcess;
 
@@ -17,17 +19,13 @@ function createWindow() {
     }
   });
 
-  // Remove a barra de menus superior
   mainWindow.setMenu(null);
 
-  // Carrega o front-end React
   const indexPath = path.join(__dirname, 'APP/dist/index.html');
   mainWindow.loadFile(indexPath);
 
-  // Configuração do Backend Sidecar
   const isPackaged = app.isPackaged;
   
-  // Define o caminho do executável ou do script python
   const pythonPath = isPackaged 
     ? path.join(process.resourcesPath, 'backend', 'api_backend.exe') 
     : 'python';
@@ -36,23 +34,19 @@ function createWindow() {
 
   console.log(`Iniciando backend em: ${pythonPath}`);
   
-  // Inicia o processo do backend
   pythonProcess = spawn(pythonPath, pythonArgs, {
-    windowsHide: true // Esconde a janela do terminal do Python
+    windowsHide: true 
   });
 
-  // Log de erros para ajudar no seu debug em produção
   pythonProcess.stderr.on('data', (data) => {
     console.error(`Erro no Python: ${data}`);
   });
 
-  // Captura se o executável falhar ao abrir (ex: antivírus bloqueando)
   pythonProcess.on('error', (err) => {
     console.error('Falha ao iniciar o processo do backend:', err);
   });
 
   mainWindow.on('closed', () => {
-    // Mata o processo Python ao fechar a janela principal
     if (pythonProcess) {
         pythonProcess.kill('SIGINT');
         pythonProcess = null;
@@ -61,10 +55,8 @@ function createWindow() {
   });
 }
 
-// Inicialização do Electron
 app.whenReady().then(createWindow);
 
-// Garante o fechamento total no Windows
 app.on('window-all-closed', () => {
   if (pythonProcess) {
       pythonProcess.kill('SIGINT');
