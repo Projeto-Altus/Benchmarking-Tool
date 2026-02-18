@@ -35,8 +35,3 @@ def create_app():
         return send_from_directory(dist_path, 'index.html')
 
     return app
-
-if __name__ == "__main__":
-    app = create_app()
-    print(">>> [SISTEMA] Motor Altus ligado na porta 5000")
-    app.run(port=5000, host='127.0.0.1')
