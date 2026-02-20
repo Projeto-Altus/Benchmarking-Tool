@@ -14,12 +14,22 @@ Para utilizar a ferramenta no seu computador Windows, siga estes passos simples:
 2.  **Escolha a Versão**: Localize a versão mais recente (ex: `v1.0.1`).
 3.  **Baixe o Instalador**: Dentro da aba **Assets**, clique no arquivo executável, geralmente nomeado como `Altus.Benchmarking.Pro.Setup.1.0.1.exe`.
 4.  **Instalação**: Execute o arquivo baixado e siga as instruções na tela. O aplicativo será instalado e um atalho será criado na sua Área de Trabalho.
-5.  **Uso Inicial**: 
+  * ⚠️ **Aviso do Windows SmartScreen**: Por ser um software independente e recém-lançado, o Windows pode exibir o alerta *"O Windows protegeu o seu PC"*. Caso isso ocorra, clique em **"Mais informações"** e, em seguida, no botão **"Executar assim mesmo"** para prosseguir com a instalação automática.
+6.  **Uso Inicial**: 
     * Abra o App e insira sua **Chave de API** (OpenAI, Gemini ou DeepSeek) nas configurações. Suas chaves são criptografadas localmente para sua segurança.
     * Cole as URLs dos produtos que deseja comparar e defina os pesos para cada atributo.
-    * Clique em **Analisar** e acompanhe o log de processamento em tempo real.
+    * Clique em **Analisar** e aguarde o processamento em tempo real.
 
 ---
+
+## 🎓 Entrega Final - Materiais Obrigatórios
+
+Acesse abaixo a documentação completa exigida para a banca (Prazo: 20/02/2026):
+
+* 📁 [Apresentação Parcial (11/11/2025)](./FINAL_SUBMISSION/Apresentação-Parcial.pdf) 
+* 📄 [Especificação de Requisitos e UML](./FINAL_SUBMISSION/Especificação-de-Requisitos-Altus-Benchmarking-Pro.pdf) 
+* 🎥 [Vídeo Demonstrativo (Funcionalidades)](./FINAL_SUBMISSION/Demo-Altus-Benchmarking-Pro.mp4) 
+* 📊 [Apresentação Final](./FINAL_SUBMISSION/Apresentação-Final-Altus-Benchmarking-Pro.pdf) 
 
 ## 🛠️ Arquitetura da Solução (Informações Técnicas)
 
