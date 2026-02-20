@@ -23,7 +23,8 @@
     "files": [
       "index.js",
       "APP/dist/**/*",
-      "package.json"
+      "package.json",
+      "!FINAL_SUBMISSION/**/*"
     ],
     "win": {
       "target": "nsis",
